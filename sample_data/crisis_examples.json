@@ -1,0 +1,47 @@
+{
+  "velachery": {
+    "report": "Heavy rainfall has continued since afternoon. Water near Velachery MRTS is reported to be knee deep, traffic movement has stopped, and several elderly residents are unable to leave their homes.",
+    "location": "Velachery",
+    "timestamp": "2026-10-05T18:30:00+05:30",
+    "environment": {
+      "rainfall_1h_mm": 42.0,
+      "rainfall_24h_mm": 128.0,
+      "temperature_c": 27.4,
+      "humidity_percent": 91.0,
+      "wind_speed_kmph": 31.0,
+      "wind_direction_deg": null,
+      "water_level_m": 1.7
+    },
+    "source_label": "development_example_not_live_data"
+  },
+  "chromepet": {
+    "report": "Heavy rain has resulted in water accumulation on a residential road in Chromepet. Vehicles are moving slowly and residents report water approaching the entrances of some houses.",
+    "location": "Chromepet",
+    "timestamp": "2026-10-05T18:30:00+05:30",
+    "environment": {
+      "rainfall_1h_mm": null,
+      "rainfall_24h_mm": null,
+      "temperature_c": null,
+      "humidity_percent": null,
+      "wind_speed_kmph": null,
+      "wind_direction_deg": null,
+      "water_level_m": null
+    },
+    "source_label": "development_example_not_live_data"
+  },
+  "tambaram": {
+    "report": "Strong winds and persistent rainfall are affecting Tambaram. A tree is reported to have fallen across a local road and electricity supply has been interrupted in parts of the area.",
+    "location": "Tambaram",
+    "timestamp": "2026-10-05T18:30:00+05:30",
+    "environment": {
+      "rainfall_1h_mm": null,
+      "rainfall_24h_mm": null,
+      "temperature_c": null,
+      "humidity_percent": null,
+      "wind_speed_kmph": null,
+      "wind_direction_deg": null,
+      "water_level_m": null
+    },
+    "source_label": "development_example_not_live_data"
+  }
+}
