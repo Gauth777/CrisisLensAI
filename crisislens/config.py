@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .providers import GeminiProvider, LLMProvider, OpenAIProvider
+from .providers import GeminiProvider, LLMProvider, OpenAIProvider, GroqProvider
 
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
 
@@ -28,7 +28,9 @@ def build_provider(provider_name: str | None = None) -> LLMProvider:
         return GeminiProvider()
     if provider == "openai":
         return OpenAIProvider()
+    if provider == "groq":
+        return GroqProvider()
 
     raise ValueError(
-        f"Unsupported provider={provider!r}. Expected 'gemini' or 'openai'."
+        f"Unsupported provider={provider!r}. Expected 'gemini', 'openai' or 'groq'."
     )

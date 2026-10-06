@@ -61,8 +61,18 @@ training features.
 
 ## Troubleshooting generation
 
+For a free-plan demo, create a key at https://console.groq.com/keys, remain on
+the Free plan, and set `CRISISLENS_PROVIDER=groq`, `GROQ_API_KEY` and
+`GROQ_MODEL=openai/gpt-oss-120b` in local `.env`. Run
+`python -m crisislens.doctor --provider groq --env-file-only`.
+Groq hosts this open-weight model; this route does not use OpenAI API credits.
+Rebuild the frontend (`cd frontend`, `npm run build`, `cd ..`) and restart the
+backend to use the new Groq selector. Generation still follows the same
+non-agentic, grounded and validated pipeline. Active free-plan allowances are
+account-specific: https://console.groq.com/docs/rate-limits.
+
 Run `python -m crisislens.doctor` from the repository root with the virtual
-environment activated. It tests both configured providers with a synthetic
+environment activated. It tests all configured providers with a synthetic
 scenario through the same generation, schema and locality validation used by
 the UI. It consumes normal API usage, makes one attempt per provider and prints
 no keys or raw provider bodies. Select the provider reporting `ready` in the UI.

@@ -65,7 +65,7 @@ def gemini_quota_kind(exc: Exception) -> str | None:
     return "daily_quota" if daily else None
 
 
-def classify_provider_failure(exc: Exception) -> ProviderFailure:
+def classify_provider_failure(exc: Exception, provider_name: str | None = None) -> ProviderFailure:
     status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
     status = status if isinstance(status, int) and not isinstance(status, bool) else None
     # Read upstream text only to recognise a fixed authentication signal. Never
@@ -78,8 +78,12 @@ def classify_provider_failure(exc: Exception) -> ProviderFailure:
             return ProviderFailure("blocked_key", "Google has blocked this API key as leaked. Create a replacement Gemini key in AI Studio, update backend .env and restart. Do not reuse the blocked key.", status)
         return ProviderFailure("permission", "The provider denied access (HTTP 403). Check API-key restrictions, project permissions and access to the configured model.", status)
     if status == 404:
+        if provider_name == "groq":
+            return ProviderFailure("model_access", "The Groq model is unavailable. Check GROQ_MODEL and this project's model permissions in the Groq console, then restart.", status)
         return ProviderFailure("model_access", "The configured model/resource is unavailable (HTTP 404). Verify the model ID and project access. New Gemini projects should use GEMINI_MODEL=gemini-3.5-flash-lite rather than the restricted 2.5 models; restart after editing .env.", status)
     if status == 429:
+        if provider_name == "groq":
+            return ProviderFailure("rate_limit", "Groq's request/token allowance was reached. Check the free-plan limits in your Groq console and wait for the indicated reset before retrying. No automatic retry was made.", status, 429)
         quota_kind = gemini_quota_kind(exc)
         if quota_kind == "quota_zero":
             return ProviderFailure("quota_zero", "Gemini reports a quota limit of zero for this request. Check this model's active limits and project tier in Google AI Studio. A new key in the same project or repeated retries will not enable that quota.", status, 429)
@@ -102,6 +106,8 @@ def classify_provider_failure(exc: Exception) -> ProviderFailure:
     if status == 402:
         return ProviderFailure("billing", "The provider reports a billing/credit problem (HTTP 402). Check the API project's billing status and available credits.", status)
     if status == 400:
+        if provider_name == "groq":
+            return ProviderFailure("request_rejected", "Groq rejected the request. Use a model supporting strict JSON-schema output (default: openai/gpt-oss-120b), and check your project's model permissions.", status)
         return ProviderFailure("request_rejected", "The provider rejected the request (HTTP 400). Check API-key validity, project billing/region eligibility and model support for structured output.", status)
     if status in (408, 504) or isinstance(exc, (TimeoutError, httpx.TimeoutException)) or type(exc).__name__ == "APITimeoutError":
         return ProviderFailure("timeout", "The model request timed out. Check connectivity and provider availability, then retry.", status, 504)

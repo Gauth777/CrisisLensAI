@@ -20,12 +20,13 @@ from crisislens.data.environment import EnvironmentalDataError
 from crisislens.pipeline import CrisisLensPipeline
 from crisislens.provider_failures import classify_provider_failure
 from crisislens.providers.gemini import DEFAULT_GEMINI_MODEL
+from crisislens.providers.groq_provider import DEFAULT_GROQ_MODEL
 from crisislens.schemas import CrisisInput, CrisisOutput, PilotLocation
 
 ROOT = Path(__file__).resolve().parent
 logger = logging.getLogger(__name__)
 load_environment()
-ProviderName = Literal["gemini", "openai"]
+ProviderName = Literal["gemini", "openai", "groq"]
 app = FastAPI(title="CrisisLens AI", version="0.4.0")
 app.add_middleware(
     CORSMiddleware,
@@ -59,9 +60,11 @@ def health():
     return {
         "status": "ok",
         "version": "0.4.0",
+        "default_provider": os.getenv("CRISISLENS_PROVIDER", "gemini").strip().lower(),
         "providers": {
             "gemini": {"configured": bool((os.getenv("GEMINI_API_KEY") or "").strip()), "model": (os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL},
             "openai": {"configured": bool((os.getenv("OPENAI_API_KEY") or "").strip()), "model": (os.getenv("OPENAI_MODEL") or "").strip() or "gpt-5-mini"},
+            "groq": {"configured": bool((os.getenv("GROQ_API_KEY") or "").strip()), "model": (os.getenv("GROQ_MODEL") or "").strip() or DEFAULT_GROQ_MODEL},
         },
     }
 
@@ -82,7 +85,7 @@ def weather(location: PilotLocation):
 
 @app.post("/api/analyse", response_model=AnalysisResponse)
 def analyse(request: AnalysisRequest):
-    key_name = "GEMINI_API_KEY" if request.provider == "gemini" else "OPENAI_API_KEY"
+    key_name = {"gemini": "GEMINI_API_KEY", "openai": "OPENAI_API_KEY", "groq": "GROQ_API_KEY"}[request.provider]
     if not os.getenv(key_name):
         raise HTTPException(503, f"Configure {key_name} in the backend .env and restart the server.")
     started = time.perf_counter()
@@ -93,7 +96,7 @@ def analyse(request: AnalysisRequest):
         logger.warning("CrisisLens failure: provider=%s category=invalid_assessment", request.provider)
         raise HTTPException(502, "The model returned an invalid assessment. No result was accepted; retry generation.") from exc
     except Exception as exc:
-        failure = classify_provider_failure(exc)
+        failure = classify_provider_failure(exc, request.provider)
         logger.warning("CrisisLens failure: provider=%s category=%s upstream_status=%s error_type=%s provider_code=%s", request.provider, failure.category, failure.upstream_status, type(exc).__name__, failure.provider_code)
         headers = {"X-CrisisLens-Error": failure.category}
         if failure.provider_code:

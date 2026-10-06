@@ -28,14 +28,16 @@ const assessment = {
     "The supplied report describes traffic disruption near Velachery MRTS.",
 };
 
-async function boot(page: Page, configured = true) {
+async function boot(page: Page, configured = true, provider: "gemini" | "groq" = "gemini") {
   await page.route("**/api/health", (route) =>
     route.fulfill({
       json: {
         status: "ok",
+        default_provider: provider,
         providers: {
-          gemini: { configured, model: "test-model" },
+          gemini: { configured: configured && provider === "gemini", model: "test-model" },
           openai: { configured: false, model: "test-openai" },
+          groq: { configured: configured && provider === "groq", model: "openai/gpt-oss-120b" },
         },
       },
     }),
@@ -59,6 +61,20 @@ test("no configured provider means no fabricated assessment", async ({
   await expect(
     page.getByRole("heading", { name: "Why this severity?" }),
   ).toHaveCount(0);
+});
+
+test("Groq default selection submits to the same assessment pipeline", async ({ page }) => {
+  await boot(page, true, "groq");
+  await expect(page.getByLabel("Generation model")).toHaveValue("groq");
+  await page.route("**/api/analyse", (route) => {
+    const submitted = route.request().postDataJSON();
+    expect(submitted.provider).toBe("groq");
+    return route.fulfill({ json: { input: submitted.input, assessment,
+      metadata: { provider: "groq", model: "openai/gpt-oss-120b", generated_at: "2026-10-06T04:00:00Z", latency_ms: 1200 } } });
+  });
+  await page.getByRole("button", { name: /Velachery Urban flooding/ }).click();
+  await page.getByRole("button", { name: "Generate assessment" }).click();
+  await expect(page.getByRole("heading", { name: "Why this severity?" })).toBeVisible();
 });
 
 test("generation renders API evidence, exports input and clears stale results on edit", async ({

@@ -19,8 +19,8 @@ from .pipeline import CrisisLensPipeline
 from .provider_failures import classify_provider_failure
 from .schemas import CrisisInput
 
-SETTINGS = ("GEMINI_API_KEY", "GEMINI_MODEL", "OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL")
-KEY_NAMES = {"gemini": "GEMINI_API_KEY", "openai": "OPENAI_API_KEY"}
+SETTINGS = ("GEMINI_API_KEY", "GEMINI_MODEL", "OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL", "GROQ_API_KEY", "GROQ_MODEL")
+KEY_NAMES = {"gemini": "GEMINI_API_KEY", "openai": "OPENAI_API_KEY", "groq": "GROQ_API_KEY"}
 PLACEHOLDERS = {"your_api_key", "your_key_here", "your-api-key", "replace_me", "..."}
 
 
@@ -50,7 +50,7 @@ def probe(provider_name: str, crisis_input: CrisisInput) -> dict:
         return {"provider": provider_name, "status": "failed", "model": model_name, "category": "invalid_assessment_or_configuration",
                 "action": "Check provider configuration or schema support; the returned assessment was not accepted."}
     except Exception as exc:
-        failure = classify_provider_failure(exc)
+        failure = classify_provider_failure(exc, provider_name)
         return {"provider": provider_name, "status": "failed", "model": model_name, "category": failure.category,
                 "upstream_status": failure.upstream_status, "provider_code": failure.provider_code,
                 "action": failure.detail}
@@ -61,7 +61,8 @@ def probe(provider_name: str, crisis_input: CrisisInput) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--provider", choices=["both", "gemini", "openai"], default="both")
+    parser.add_argument("--provider", choices=["all", "both", "gemini", "openai", "groq"], default="all",
+                        help="all checks all three providers; both retains the Gemini/OpenAI comparison.")
     parser.add_argument("--env-file-only", action="store_true",
                         help="Temporarily prefer .env settings for this check; does not edit files or your shell.")
     args = parser.parse_args(argv)
@@ -80,7 +81,7 @@ def main(argv: list[str] | None = None) -> int:
               "Use --env-file-only to compare against .env without changing your shell.", flush=True)
     scenarios = json.loads((ENV_FILE.parent / "sample_data/crisis_examples.json").read_text(encoding="utf-8"))
     crisis_input = CrisisInput.model_validate(next(iter(scenarios.values())))
-    providers = ["gemini", "openai"] if args.provider == "both" else [args.provider]
+    providers = list(KEY_NAMES) if args.provider == "all" else (["gemini", "openai"] if args.provider == "both" else [args.provider])
     ready = []
     for name in providers:
         print(f"Checking {name}...", flush=True)

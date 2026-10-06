@@ -18,7 +18,7 @@ pip install -r requirements.txt
 ```
 
 Copy `.env.example` to `.env` and configure at least one provider key. The UI
-lets you choose Gemini or OpenAI; keys remain on the backend. A configured key
+lets you choose Gemini, OpenAI or Groq; keys remain on the backend. A configured key
 is not proof of valid credentials or available quota. Restart the backend after
 changing `.env`.
 
@@ -36,6 +36,30 @@ are stale, compare using `python -m crisislens.doctor --env-file-only`; this onl
 prefers file values for that check. Correct the shell settings and restart the
 backend before using the UI. A `ready` result verifies the actual pipeline,
 whereas `/api/health` only checks whether a key is present.
+
+### Free-plan setup with Groq
+
+Create a key at https://console.groq.com/keys and keep the account on the Free
+plan. Add these values to your local `.env` (pulling code does not edit it):
+
+```dotenv
+CRISISLENS_PROVIDER=groq
+GROQ_API_KEY=your_private_groq_key
+GROQ_MODEL=openai/gpt-oss-120b
+```
+
+Then run `python -m crisislens.doctor --provider groq --env-file-only`.
+The provider uses Groq's endpoint and key, with no tools, and retains the same
+Chennai grounding, strict structured output and Pydantic validation. The model
+name identifies OpenAI's open-weight GPT-OSS model **hosted by Groq**, rather
+than the OpenAI API or its prepaid account.
+
+Groq lists this model on its Free plan. Check your account's active limits:
+https://console.groq.com/docs/rate-limits. Free usage is limited; 429 errors are
+reported without automatic retries or switching to another provider. Strict
+output support: https://console.groq.com/docs/structured-outputs.
+Rebuild the frontend and restart the backend after pulling to see the Groq
+option. Backend `CRISISLENS_PROVIDER=groq` selects it on initial page load.
 
 Build the frontend, then start the single-server demo:
 

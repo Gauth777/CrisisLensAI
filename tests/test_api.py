@@ -12,6 +12,7 @@ from crisislens.providers.base import LLMProvider
 def client(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
     return TestClient(api.app)
 
 

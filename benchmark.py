@@ -108,7 +108,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--provider",
-        choices=["gemini", "openai", "both"],
+        choices=["gemini", "openai", "groq", "both", "all"],
         default="gemini",
     )
     parser.add_argument(
@@ -144,9 +144,8 @@ def main() -> None:
 
     scenarios = _select_scenarios(args)
     providers = (
-        ["gemini", "openai"]
-        if args.provider == "both"
-        else [args.provider]
+        ["gemini", "openai", "groq"] if args.provider == "all"
+        else (["gemini", "openai"] if args.provider == "both" else [args.provider])
     )
 
     failures = 0

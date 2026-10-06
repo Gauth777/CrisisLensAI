@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 type Location = "Tambaram" | "Chromepet" | "Velachery";
-type Provider = "gemini" | "openai";
+type Provider = "gemini" | "openai" | "groq";
 type Mode = "sample" | "manual" | "unknown" | "live";
 type Environment = {
   rainfall_1h_mm?: number | null;
@@ -46,6 +46,7 @@ type Input = {
 };
 type Scenario = { id: string; input: Input };
 type Health = {
+  default_provider?: Provider;
   providers: Record<Provider, { configured: boolean; model: string }>;
 };
 type Assessment = {
@@ -192,7 +193,7 @@ export default function App() {
   const [connectionError, setConnectionError] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const locked = busy || weatherBusy;
-  const configured = health?.providers[provider].configured ?? false;
+  const configured = health?.providers[provider]?.configured ?? false;
 
   async function connect() {
     setConnectionError("");
@@ -202,6 +203,9 @@ export default function App() {
         request<Scenario[]>("/api/scenarios"),
       ]);
       setHealth(status);
+      if (!health && status.default_provider && status.providers[status.default_provider]) {
+        setProvider(status.default_provider);
+      }
       setScenarios(samples);
     } catch (e) {
       setHealth(null);
@@ -631,11 +635,12 @@ export default function App() {
                       >
                         <option value="gemini">Gemini</option>
                         <option value="openai">OpenAI</option>
+                        <option value="groq">Groq · free tier</option>
                       </select>
                       <ChevronDown size={15} />
                     </div>
                     <p className="model-note">
-                      {health?.providers[provider].model ||
+                      {health?.providers[provider]?.model ||
                         "Waiting for backend"}{" "}
                       ·{" "}
                       {configured
