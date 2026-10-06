@@ -17,6 +17,8 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from crisislens.config import build_provider, load_environment
 from crisislens.data import OpenMeteoWeatherClient
 from crisislens.data.environment import EnvironmentalDataError
+from crisislens.data.context import collect_context
+from crisislens.recommendations import RecommendationQuestion, recommend
 from crisislens.pipeline import CrisisLensPipeline
 from crisislens.provider_failures import classify_provider_failure
 from crisislens.providers.gemini import DEFAULT_GEMINI_MODEL
@@ -112,6 +114,48 @@ def analyse(request: AnalysisRequest):
             latency_ms=round((time.perf_counter() - started) * 1000, 2),
         ),
     )
+
+
+@app.get("/api/context/{location}")
+def context(location: PilotLocation, refresh: bool = False):
+    return collect_context(location, refresh=refresh)
+
+
+class RecommendationRequest(RecommendationQuestion):
+    provider: ProviderName = "groq"
+
+
+@app.post("/api/recommend")
+def recommendations(request: RecommendationRequest):
+    key_name = {"gemini": "GEMINI_API_KEY", "openai": "OPENAI_API_KEY", "groq": "GROQ_API_KEY"}[request.provider]
+    if not (os.getenv(key_name) or "").strip():
+        raise HTTPException(503, f"Configure {key_name} in backend .env and restart.")
+    started = time.perf_counter()
+    bundle = collect_context(request.location)
+    bundle["sources"].append({"id": "U1", "kind": "user", "title": "Your question or report",
+        "publisher": "User supplied", "url": None, "published_at": None,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(), "excerpt": request.question,
+        "scope": "locality", "content_scope": "unverified_input",
+        "limitation": "Not independently verified. A question is not evidence that an incident occurred."})
+    if request.demo:
+        # Never combine synthetic development measurements with live sources.
+        bundle = {"location": request.location, "retrieved_at": datetime.now(timezone.utc).isoformat(),
+                  "outlook": None, "source_status": [], "coverage_note": "Fictional demonstration, not a real incident.",
+                  "sources": [bundle["sources"][-1]]}
+    try:
+        provider = build_provider(request.provider)
+        answer = recommend(provider, request, bundle)
+    except (ValidationError, ValueError, TypeError) as exc:
+        logger.warning("CrisisLens recommendation failure: provider=%s category=invalid_citations_or_output", request.provider)
+        raise HTTPException(502, "The response failed structure or citation checks. No recommendation was accepted; try again.") from exc
+    except Exception as exc:
+        failure = classify_provider_failure(exc, request.provider)
+        logger.warning("CrisisLens recommendation failure: provider=%s category=%s provider_code=%s", request.provider, failure.category, failure.provider_code)
+        raise HTTPException(failure.http_status, failure.detail) from exc
+    return {"question": request.model_dump(), "recommendation": answer.model_dump(), "context": bundle,
+            "metadata": {"provider": request.provider, "model": provider.model,
+                         "generated_at": datetime.now(timezone.utc).isoformat(),
+                         "latency_ms": round((time.perf_counter() - started) * 1000, 2)}}
 
 
 # Build the frontend before starting this server to use a single localhost URL.

@@ -24,14 +24,14 @@ class GroqProvider(LLMProvider):
         self.client = OpenAI(api_key=key, base_url="https://api.groq.com/openai/v1",
                              timeout=90.0, max_retries=0)
 
-    def generate_json(self, *, system_prompt: str, user_prompt: str) -> dict[str, Any]:
+    def generate_json(self, *, system_prompt: str, user_prompt: str, output_schema: dict[str, Any] | None = None) -> dict[str, Any]:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "system", "content": system_prompt},
                       {"role": "user", "content": user_prompt}],
             response_format={"type": "json_schema", "json_schema": {
                 "name": "crisis_assessment", "strict": True,
-                "schema": CrisisOutput.model_json_schema(),
+                "schema": output_schema or CrisisOutput.model_json_schema(),
             }},
             max_completion_tokens=2048,
             reasoning_effort="low",

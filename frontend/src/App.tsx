@@ -1,886 +1,120 @@
-import { useEffect, useState } from "react";
-import {
-  Activity,
-  ArrowDown,
-  ArrowRight,
-  Check,
-  ChevronDown,
-  CircleHelp,
-  CloudRain,
-  Download,
-  FileText,
-  Layers3,
-  LoaderCircle,
-  MapPin,
-  Radio,
-  RefreshCw,
-  ShieldCheck,
-  Sparkles,
-  Thermometer,
-  TriangleAlert,
-  Wind,
-  X,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, ArrowUpRight, Check, ChevronDown, CloudRain, Compass, Download, ExternalLink, FileText, HeartHandshake, HelpCircle, Layers3, LoaderCircle, MapPin, Package, RefreshCw, Search, ShieldCheck, Sparkles, Users, Wind, X } from "lucide-react";
 
-type Location = "Tambaram" | "Chromepet" | "Velachery";
-type Provider = "gemini" | "openai" | "groq";
-type Mode = "sample" | "manual" | "unknown" | "live";
-type Environment = {
-  rainfall_1h_mm?: number | null;
-  rainfall_24h_mm?: number | null;
-  temperature_c?: number | null;
-  humidity_percent?: number | null;
-  wind_speed_kmph?: number | null;
-  wind_direction_deg?: number | null;
-  water_level_m?: number | null;
-  observed_at?: string | null;
-  source_name?: string | null;
-  source_kind?: "manual_development_input" | "gridded_weather_fallback" | null;
-};
-type Input = {
-  report: string;
-  location: Location;
-  timestamp: string | null;
-  environment: Environment;
-  source_label: string;
-};
-type Scenario = { id: string; input: Input };
-type Health = {
-  default_provider?: Provider;
-  providers: Record<Provider, { configured: boolean; model: string }>;
-};
-type Assessment = {
-  location: Location;
-  disaster_type: string;
-  severity: "low" | "medium" | "high" | "critical";
-  severity_evidence: { statement: string; source: string }[];
-  affected_people: string[];
-  resources_required: string[];
-  recommended_actions: string[];
-  missing_information: string[];
-  situation_report: string;
-};
-type Result = {
-  input: Input;
-  assessment: Assessment;
-  metadata: {
-    provider: Provider;
-    model: string;
-    generated_at: string;
-    latency_ms: number;
-  };
-};
-type NumericField =
-  | "rainfall_1h_mm"
-  | "rainfall_24h_mm"
-  | "temperature_c"
-  | "humidity_percent"
-  | "wind_speed_kmph"
-  | "wind_direction_deg"
-  | "water_level_m";
-const fields: {
-  key: NumericField;
-  label: string;
-  unit: string;
-  min: number;
-  max?: number;
-}[] = [
-  { key: "rainfall_1h_mm", label: "Rainfall · 1 hour", unit: "mm", min: 0 },
-  { key: "rainfall_24h_mm", label: "Rainfall · 24 hours", unit: "mm", min: 0 },
-  { key: "temperature_c", label: "Temperature", unit: "°C", min: -20, max: 60 },
-  { key: "humidity_percent", label: "Humidity", unit: "%", min: 0, max: 100 },
-  { key: "wind_speed_kmph", label: "Wind speed", unit: "km/h", min: 0 },
-  {
-    key: "wind_direction_deg",
-    label: "Wind direction",
-    unit: "°",
-    min: 0,
-    max: 360,
-  },
-  { key: "water_level_m", label: "Water level", unit: "m", min: 0 },
-];
-const sourceLabels: Record<string, string> = {
-  field_report: "Field report",
-  environmental_context: "Environmental context",
-  location_context: "Locality context",
-};
-const locations: Location[] = ["Tambaram", "Chromepet", "Velachery"];
-const titles: Record<string, string> = {
-  velachery: "Urban flooding",
-  chromepet: "Residential waterlogging",
-  tambaram: "Wind & infrastructure",
-};
-const words = (value: string) => value.replaceAll("_", " ");
-const formatTime = (value?: string | null) =>
-  value
-    ? Number.isNaN(Date.parse(value))
-      ? value
-      : new Date(value).toLocaleString("en-IN", {
-          timeZone: "Asia/Kolkata",
-          dateStyle: "medium",
-          timeStyle: "short",
-        }) + " IST"
-    : "Not supplied";
-
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), 150000);
-  try {
-    const response = await fetch(path, {
-      ...options,
-      signal: controller.signal,
-    });
-    const data = await response.json();
-    if (!response.ok)
-      throw new Error(
-        typeof data.detail === "string"
-          ? data.detail
-          : "Input rejected. Check the report, locality and measurement ranges.",
-      );
-    return data as T;
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError")
-      throw new Error(
-        "The request timed out. Retry after checking backend connectivity.",
-      );
-    if (error instanceof TypeError || error instanceof SyntaxError)
-      throw new Error(
-        "Cannot reach the CrisisLens API. Start the backend and retry.",
-      );
-    throw error;
-  } finally {
-    window.clearTimeout(timer);
-  }
-}
-
-function ItemList({
-  items,
-  numbered = false,
-}: {
-  items: string[];
-  numbered?: boolean;
-}) {
-  if (!items.length)
-    return <p className="muted">None identified from the supplied evidence.</p>;
-  return (
-    <ul className="item-list">
-      {items.map((item, index) => (
-        <li key={index}>
-          <span className={numbered ? "item-number" : "item-dot"}>
-            {numbered ? String(index + 1).padStart(2, "0") : ""}
-          </span>
-          <span>{item}</span>
-        </li>
-      ))}
-    </ul>
-  );
+type Location = "Velachery" | "Tambaram" | "Chromepet";
+type Provider = "groq" | "gemini" | "openai";
+type Status = "supported" | "contradicted" | "insufficient_evidence";
+type Source = { id: string; kind: "weather" | "news" | "user"; title: string; publisher: string; url: string | null; published_at: string | null; retrieved_at: string; excerpt: string; scope: string; content_scope: string; limitation: string; data?: { temperature_c: number | null; rainfall_1h_mm: number | null; wind_speed_kmph: number | null }; next_rain?: Hour | null };
+type Hour = { time: string; precipitation_mm: number | null; probability_percent: number | null };
+type Context = { location: Location; retrieved_at: string; outlook: null | { environment: { temperature_c: number | null; wind_speed_kmph: number | null; observed_at: string }; hours: Hour[]; next_rain: Hour | null; forecast_complete: boolean }; sources: Source[]; source_status: { name: string; status: string }[]; coverage_note: string };
+type Cited = { title: string; explanation: string; source_ids: string[] };
+type Claim = { statement: string; category: string; status: Status; explanation: string; source_ids: string[] };
+type Result = { question: { location: Location; question: string; demo: boolean }; recommendation: { headline: string; answer: string; claims: Claim[]; recommendations: Cited[]; affected_groups: Cited[]; supplies: Cited[]; missing_information: string[] }; context: Context; metadata: { model: string; generated_at: string; latency_ms: number } };
+type Health = { default_provider: Provider; providers: Record<Provider, { configured: boolean; model: string }> };
+type Panel = { title: string; explanation: string; ids: string[]; tab: "why" | "sources" | "gaps"; current: boolean; all: boolean };
+const locations: Location[] = ["Velachery", "Tambaram", "Chromepet"];
+const statusLabels: Record<Status, string> = { supported: "Evidence supports this", contradicted: "Opposing evidence found", insufficient_evidence: "Not enough evidence" };
+const time = (value: string | null | undefined, short = false) => value ? new Date(value).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", ...(short ? { hour: "numeric", minute: "2-digit" } : { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) }) + " IST" : "Not supplied";
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(path, options);
+  const data = await response.json();
+  if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Please check your question and try again.");
+  return data;
 }
 
 export default function App() {
-  const [health, setHealth] = useState<Health | null>(null);
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [provider, setProvider] = useState<Provider>("gemini");
-  const [location, setLocation] = useState<Location>("Velachery");
-  const [report, setReport] = useState("");
-  const [timestamp, setTimestamp] = useState<string | null>(null);
-  const [environment, setEnvironment] = useState<Environment>({});
-  const [mode, setMode] = useState<Mode>("unknown");
-  const [sourceLabel, setSourceLabel] = useState("citizen_or_field_report");
-  const [selectedSample, setSelectedSample] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [weatherBusy, setWeatherBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [connectionError, setConnectionError] = useState("");
-  const [result, setResult] = useState<Result | null>(null);
-  const locked = busy || weatherBusy;
-  const configured = health?.providers[provider]?.configured ?? false;
-
-  async function connect() {
-    setConnectionError("");
-    try {
-      const [status, samples] = await Promise.all([
-        request<Health>("/api/health"),
-        request<Scenario[]>("/api/scenarios"),
-      ]);
-      setHealth(status);
-      if (!health && status.default_provider && status.providers[status.default_provider]) {
-        setProvider(status.default_provider);
-      }
-      setScenarios(samples);
-    } catch (e) {
-      setHealth(null);
-      setConnectionError((e as Error).message);
-    }
-  }
+  const [location, setLocation] = useState<Location>("Velachery"), [question, setQuestion] = useState("");
+  const [provider, setProvider] = useState<Provider>("groq"), [health, setHealth] = useState<Health | null>(null);
+  const [context, setContext] = useState<Context | null>(null), [contextBusy, setContextBusy] = useState(false), [contextError, setContextError] = useState("");
+  const [error, setError] = useState(""), [busy, setBusy] = useState(false), [result, setResult] = useState<Result | null>(null);
+  const [demo, setDemo] = useState(false), [panel, setPanel] = useState<Panel | null>(null), [settings, setSettings] = useState(false), [refresh, setRefresh] = useState(0);
+  const resultRef = useRef<HTMLElement>(null), panelRef = useRef<HTMLElement>(null), lastFocus = useRef<HTMLElement | null>(null);
+  const requestRef = useRef<AbortController | null>(null), textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
-    void connect();
+    let active = true;
+    request<Health>("/api/health").then(data => {
+      if (!active) return;
+      setHealth(data);
+      setProvider(data.providers[data.default_provider]?.configured ? data.default_provider : (["groq", "gemini", "openai"] as Provider[]).find(p => data.providers[p]?.configured) || "groq");
+    }).catch(() => active && setError("Cannot reach the backend. Start the CrisisLens server and reload."));
+    return () => { active = false; };
   }, []);
-  function changed() {
-    setResult(null);
-    setError("");
-  }
-  function loadSample(s: Scenario) {
-    changed();
-    setLocation(s.input.location);
-    setReport(s.input.report);
-    setTimestamp(s.input.timestamp);
-    setEnvironment(s.input.environment);
-    setSourceLabel(s.input.source_label);
-    setMode("sample");
-    setSelectedSample(s.id);
-  }
-  function changeLocation(next: Location) {
-    changed();
-    setLocation(next);
-    setReport("");
-    setTimestamp(null);
-    setEnvironment({});
-    setMode("unknown");
-    setSelectedSample(null);
-    setSourceLabel("citizen_or_field_report");
-  }
-  async function fetchWeather() {
-    changed();
-    setWeatherBusy(true);
-    try {
-      const data = await request<Environment>(`/api/weather/${location}`);
-      setEnvironment(data);
-      setMode("live");
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setWeatherBusy(false);
-    }
-  }
-  function changeMode(next: Mode) {
-    changed();
-    if (next === "unknown") setEnvironment({});
-    if (next === "manual")
-      setEnvironment({
-        ...environment,
-        source_name: "Manual development input (unverified)",
-        source_kind: "manual_development_input",
-      });
-    setMode(next);
-  }
-  async function generate(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    changed();
-    setBusy(true);
-    const input: Input = {
-      report: report.trim(),
-      location,
-      timestamp,
-      environment,
-      source_label: sourceLabel,
+  useEffect(() => {
+    const controller = new AbortController();
+    setContext(null); setContextBusy(true); setContextError("");
+    request<Context>(`/api/context/${location}${refresh ? "?refresh=true" : ""}`, { signal: controller.signal }).then(setContext).catch(e => {
+      if (e.name !== "AbortError") setContextError("Local context is unavailable. Recommendations will show any retrieval gaps.");
+    }).finally(() => { if (!controller.signal.aborted) setContextBusy(false); });
+    return () => controller.abort();
+  }, [location, refresh]);
+  useEffect(() => () => requestRef.current?.abort(), []);
+  useEffect(() => {
+    if (!panel) return;
+    lastFocus.current = document.activeElement as HTMLElement; panelRef.current?.focus();
+    const overflow = document.body.style.overflow; document.body.style.overflow = "hidden";
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPanel(null);
+      if (e.key === "Tab") {
+        const elements = panelRef.current?.querySelectorAll<HTMLElement>('button, a[href], [tabindex="0"]');
+        if (!elements?.length) return;
+        const first = elements[0], last = elements[elements.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     };
-    try {
-      setResult(
-        await request<Result>("/api/analyse", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ input, provider }),
-        }),
-      );
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+    document.addEventListener("keydown", handle);
+    return () => { document.body.style.overflow = overflow; document.removeEventListener("keydown", handle); lastFocus.current?.focus(); };
+  }, [!!panel]);
+  function reset() { setResult(null); setPanel(null); setError(""); }
+  function askPrompt(index: number) {
+    reset(); setDemo(false);
+    setQuestion(index === 0 ? `There is a report of waterlogging in ${location}. What evidence supports it, and what should our volunteers verify?` : index === 1 ? `Our NGO has 50 food kits and 6 volunteers available for ${location}. What needs can be established, and what should we prepare before deciding where to help?` : `When is rain forecast in ${location} over the next 24 hours? Explain the forecast and what it means for our volunteer planning.`);
+    textareaRef.current?.focus();
   }
+  async function generate(event: React.FormEvent) {
+    event.preventDefault(); reset(); setBusy(true);
+    const controller = new AbortController(); requestRef.current = controller;
+    const timer = window.setTimeout(() => controller.abort(), 150000);
+    try {
+      const response = await request<Result>("/api/recommend", { method: "POST", headers: { "Content-Type": "application/json" }, signal: controller.signal, body: JSON.stringify({ location, question, provider, demo }) });
+      setResult(response); window.setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    } catch (e) { setError(e instanceof Error && e.name === "AbortError" ? "The request timed out. Check your connection and retry." : e instanceof Error ? e.message : "Could not generate recommendations."); }
+    finally { window.clearTimeout(timer); setBusy(false); }
+  }
+  function openPanel(title: string, explanation: string, ids: string[] = [], tab: Panel["tab"] = "why", current = false, all = false) { setPanel({ title, explanation, ids, tab, current, all }); }
   function download() {
     if (!result) return;
-    const url = URL.createObjectURL(
-      new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }),
-    );
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `crisislens-${result.input.location.toLowerCase()}-${Date.now()}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a"); link.href = url; link.download = `crisislens-${location.toLowerCase()}-briefing.json`; link.click(); URL.revokeObjectURL(url);
   }
-  const assessment = result?.assessment;
-
-  return (
-    <div className="app-shell">
-      <aside className="rail" aria-label="Workspace navigation">
-        <a className="brand-symbol" href="#" aria-label="CrisisLens home">
-          <Layers3 size={26} />
-        </a>
-        <div className="rail-active" title="Assessment workspace">
-          <Activity size={22} />
-        </div>
-        <div className="rail-bottom">
-          <ShieldCheck size={22} />
-          <span>V0.4</span>
-        </div>
-      </aside>
-      <div className="workspace">
-        <header className="topbar">
-          <a href="#" className="wordmark">
-            CrisisLens<span>AI</span>
-          </a>
-          <div className="topbar-right">
-            <span className="pilot-tag">
-              <MapPin size={13} /> CHENNAI PILOT
-            </span>
-            <span className="connection">
-              <i className={health ? "dot connected" : "dot"} />
-              {health ? "Backend connected" : "Backend offline"}
-            </span>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Refresh backend status"
-              onClick={() => void connect()}
-              disabled={locked}
-            >
-              <RefreshCw size={15} />
-            </button>
-          </div>
-        </header>
-        <main>
-          <section className="page-heading">
-            <div>
-              <div className="eyebrow">
-                <span /> EVIDENCE-GROUNDED GENERATIVE AI
-              </div>
-              <h1>Clarity when it matters.</h1>
-              <p>
-                Turn field reports into structured crisis intelligence for
-                Chennai.
-              </p>
-            </div>
-            <div className="human-tag">
-              <ShieldCheck size={18} />
-              <div>
-                Human-led response<small>Advisory intelligence only</small>
-              </div>
-            </div>
-          </section>
-          <section className="pipeline-strip" aria-label="Assessment pipeline">
-            <div>
-              <span className="step-index">01</span>
-              <FileText size={16} /> Incident report
-            </div>
-            <ArrowRight size={14} />
-            <div>
-              <span className="step-index">02</span>
-              <CloudRain size={17} /> Environmental context
-            </div>
-            <ArrowRight size={14} />
-            <div>
-              <span className="step-index">03</span>
-              <Sparkles size={16} /> GenAI synthesis
-            </div>
-            <ArrowRight size={14} />
-            <div>
-              <span className="step-index">04</span>
-              <ShieldCheck size={16} /> Validated assessment
-            </div>
-          </section>
-          {connectionError && (
-            <div className="alert error" role="alert">
-              {connectionError}
-              <button type="button" onClick={() => void connect()}>
-                Reconnect
-              </button>
-            </div>
-          )}
-          <div className="main-grid">
-            <section className="panel input-panel">
-              <div className="panel-heading">
-                <div className="panel-icon">
-                  <Radio size={18} />
-                </div>
-                <div>
-                  <h2>Incident workspace</h2>
-                  <p>Start with what you know.</p>
-                </div>
-                <span className="section-number">01</span>
-              </div>
-              <form onSubmit={generate}>
-                <fieldset disabled={locked}>
-                  <div className="input-section">
-                    <div className="label-row">
-                      <label htmlFor="location">Pilot locality</label>
-                      <span>Chennai region</span>
-                    </div>
-                    <div className="select-wrap">
-                      <MapPin size={17} />
-                      <select
-                        id="location"
-                        value={location}
-                        onChange={(e) =>
-                          changeLocation(e.target.value as Location)
-                        }
-                      >
-                        {locations.map((l) => (
-                          <option key={l}>{l}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={15} />
-                    </div>
-                    <div className="label-row sample-label">
-                      <span>Try a sample incident</span>
-                      <span>Synthetic</span>
-                    </div>
-                    <div className="samples">
-                      {scenarios.map((s) => (
-                        <button
-                          type="button"
-                          key={s.id}
-                          className={
-                            selectedSample === s.id
-                              ? "sample selected"
-                              : "sample"
-                          }
-                          onClick={() => loadSample(s)}
-                        >
-                          <span>{s.input.location}</span>
-                          <small>{titles[s.id] || "Sample incident"}</small>
-                          {selectedSample === s.id && <Check size={13} />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="input-section">
-                    <div className="label-row">
-                      <label htmlFor="report">Field report</label>
-                      <span>{report.length.toLocaleString()} / 12,000</span>
-                    </div>
-                    <textarea
-                      id="report"
-                      value={report}
-                      required
-                      minLength={5}
-                      maxLength={12000}
-                      rows={6}
-                      placeholder="Describe what happened, where it happened, and who is affected…"
-                      onChange={(e) => {
-                        changed();
-                        setReport(e.target.value);
-                        setSelectedSample(null);
-                        if (sourceLabel.includes("development"))
-                          setSourceLabel(
-                            "edited_development_report_not_live_data",
-                          );
-                      }}
-                    />
-                    <p className="input-hint">
-                      <FileText size={12} /> Specific observations make better
-                      evidence.
-                    </p>
-                    {sourceLabel.includes("development") && (
-                      <p className="sample-notice">
-                        Development scenario · not a verified incident
-                      </p>
-                    )}
-                  </div>
-                  <div className="input-section environment-section">
-                    <div className="label-row">
-                      <label>Environmental context</label>
-                      <span className="context-tag">
-                        {mode === "live"
-                          ? "Gridded fallback"
-                          : mode === "sample"
-                            ? "Synthetic sample"
-                            : mode === "manual"
-                              ? "Manual · unverified"
-                              : "Unknown"}
-                      </span>
-                    </div>
-                    <div className="context-buttons">
-                      <button
-                        type="button"
-                        className={mode === "unknown" ? "active" : ""}
-                        onClick={() => changeMode("unknown")}
-                      >
-                        Unknown
-                      </button>
-                      <button
-                        type="button"
-                        className={mode === "manual" ? "active" : ""}
-                        onClick={() => changeMode("manual")}
-                      >
-                        Manual input
-                      </button>
-                      <button
-                        type="button"
-                        className={mode === "live" ? "active" : ""}
-                        onClick={() => void fetchWeather()}
-                      >
-                        {weatherBusy ? (
-                          <LoaderCircle size={13} className="spin" />
-                        ) : (
-                          <RefreshCw size={12} />
-                        )}{" "}
-                        Fetch weather
-                      </button>
-                    </div>
-                    <div className="weather-summary">
-                      <div>
-                        <CloudRain size={18} />
-                        <span>
-                          24h rainfall
-                          <strong>
-                            {environment.rainfall_24h_mm ?? "—"}{" "}
-                            <small>mm</small>
-                          </strong>
-                        </span>
-                      </div>
-                      <div>
-                        <Wind size={18} />
-                        <span>
-                          Wind speed
-                          <strong>
-                            {environment.wind_speed_kmph ?? "—"}{" "}
-                            <small>km/h</small>
-                          </strong>
-                        </span>
-                      </div>
-                      <div>
-                        <Thermometer size={18} />
-                        <span>
-                          Temperature
-                          <strong>
-                            {environment.temperature_c ?? "—"} <small>°C</small>
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
-                    <details className="measurements" open={mode === "manual"}>
-                      <summary>
-                        Measurements & provenance <ChevronDown size={14} />
-                      </summary>
-                      <div className="measurement-grid">
-                        {fields.map((f) => (
-                          <label key={f.key}>
-                            {f.label}
-                            <div className="number-wrap">
-                              <input
-                                aria-label={f.label}
-                                type="number"
-                                step="any"
-                                min={f.min}
-                                max={f.max}
-                                readOnly={mode !== "manual"}
-                                value={environment[f.key] ?? ""}
-                                placeholder="Unknown"
-                                onChange={(e) => {
-                                  changed();
-                                  setEnvironment({
-                                    ...environment,
-                                    [f.key]:
-                                      e.target.value === ""
-                                        ? null
-                                        : Number(e.target.value),
-                                  });
-                                }}
-                              />
-                              <span>{f.unit}</span>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                      {mode === "manual" && (
-                        <label className="timestamp-label">
-                          Observation time (include timezone)
-                          <input
-                            value={environment.observed_at ?? ""}
-                            placeholder="2026-10-06T09:00:00+05:30"
-                            onChange={(e) => {
-                              changed();
-                              setEnvironment({
-                                ...environment,
-                                observed_at: e.target.value || null,
-                              });
-                            }}
-                          />
-                        </label>
-                      )}
-                      <dl className="provenance">
-                        <dt>Source</dt>
-                        <dd>
-                          {environment.source_name ||
-                            "No environmental source supplied"}
-                        </dd>
-                        <dt>Observed</dt>
-                        <dd>{formatTime(environment.observed_at)}</dd>
-                        <dt>Incident time</dt>
-                        <dd>{formatTime(timestamp)}</dd>
-                      </dl>
-                    </details>
-                    <p className="source-note">
-                      {mode === "live"
-                        ? "Open-Meteo modelled weather, not an official station observation. Local water level is unknown. Confirm that current weather is relevant to your report."
-                        : mode === "sample"
-                          ? "Measurements are synthetic development inputs, not Chennai weather records."
-                          : mode === "manual"
-                            ? "Entered values are unverified context. Leave unavailable measurements blank."
-                            : "Unavailable measurements remain unknown; they are never filled with assumed values."}
-                    </p>
-                  </div>
-                  <div className="input-section model-section">
-                    <label htmlFor="provider">Generation model</label>
-                    <div className="select-wrap">
-                      <Sparkles size={15} />
-                      <select
-                        id="provider"
-                        value={provider}
-                        onChange={(e) => {
-                          changed();
-                          setProvider(e.target.value as Provider);
-                        }}
-                      >
-                        <option value="gemini">Gemini</option>
-                        <option value="openai">OpenAI</option>
-                        <option value="groq">Groq · free tier</option>
-                      </select>
-                      <ChevronDown size={15} />
-                    </div>
-                    <p className="model-note">
-                      {health?.providers[provider]?.model ||
-                        "Waiting for backend"}{" "}
-                      ·{" "}
-                      {configured
-                        ? "Key configured"
-                        : "API key needed on backend"}
-                    </p>
-                  </div>
-                  <div className="generate-area">
-                    <button
-                      className="generate-button"
-                      type="submit"
-                      disabled={!configured || report.trim().length < 5}
-                    >
-                      {busy ? (
-                        <>
-                          <LoaderCircle size={18} className="spin" /> Generating
-                          assessment…
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles size={17} /> Generate assessment{" "}
-                          <ArrowRight size={17} />
-                        </>
-                      )}
-                    </button>
-                    <p>Grounded in your input. Reviewed by you.</p>
-                  </div>
-                </fieldset>
-              </form>
-            </section>
-            <section
-              className="results-column"
-              aria-label="Generated assessment"
-              aria-busy={busy}
-            >
-              <div className="results-title">
-                <div>
-                  <span className="eyebrow">ASSESSMENT OUTPUT</span>
-                  <h2>Situation intelligence</h2>
-                </div>
-                {result && (
-                  <button
-                    className="export-button"
-                    type="button"
-                    onClick={download}
-                  >
-                    <Download size={14} /> Export JSON
-                  </button>
-                )}
-              </div>
-              {error && (
-                <div className="alert error" role="alert">
-                  <TriangleAlert size={18} />
-                  <span>{error}</span>
-                  <button
-                    type="button"
-                    aria-label="Dismiss error"
-                    onClick={() => setError("")}
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              )}
-              {!assessment ? (
-                <div className="panel empty-state">
-                  <div
-                    className={
-                      busy
-                        ? "signal-illustration generating"
-                        : "signal-illustration"
-                    }
-                  >
-                    <div className="orbit orbit-one" />
-                    <div className="orbit orbit-two" />
-                    <div className="orbit orbit-three" />
-                    <span className="signal-dot signal-a" />
-                    <span className="signal-dot signal-b" />
-                    <span className="signal-dot signal-c" />
-                    <div className="signal-core">
-                      {busy ? (
-                        <LoaderCircle size={34} className="spin" />
-                      ) : (
-                        <Layers3 size={34} />
-                      )}
-                    </div>
-                  </div>
-                  <span className="empty-kicker">
-                    {busy
-                      ? "GENERATION IN PROGRESS"
-                      : "FROM SIGNAL TO UNDERSTANDING"}
-                  </span>
-                  <h3>
-                    {busy
-                      ? "Connecting the evidence."
-                      : "Every clear response starts\nwith a clear picture."}
-                  </h3>
-                  <p>
-                    {busy
-                      ? "The model is assessing your report and supplied context. The response will appear only after structure and locality validation."
-                      : "Add a field report and environmental context. CrisisLens will build a structured assessment with supporting evidence and explicit unknowns."}
-                  </p>
-                  <div className="empty-features">
-                    <span>
-                      <ShieldCheck size={15} /> Evidence-linked severity
-                    </span>
-                    <span>
-                      <CircleHelp size={15} /> Explicit missing information
-                    </span>
-                    <span>
-                      <FileText size={15} /> Structured situation report
-                    </span>
-                  </div>
-                  <div className="empty-bottom">
-                    <ArrowDown size={14} /> Human judgment stays at the centre.
-                  </div>
-                </div>
-              ) : (
-                <div className="assessment-content">
-                  <div className="assessment-provenance" role="note">
-                    <TriangleAlert size={18} />
-                    <div>
-                      <strong>
-                        {result!.input.source_label === "development_example_not_live_data" || result!.input.environment.source_name === "Synthetic development scenario"
-                          ? "Synthetic demonstration — not a live incident"
-                          : "Assessment of a supplied report — verification required"}
-                      </strong>
-                      <p>
-                        {result!.input.source_label === "development_example_not_live_data"
-                          ? "The incident report is fictional. This assessment does not establish that flooding or rainfall is happening in this locality. "
-                          : "The report contains supplied claims; generation does not independently confirm the incident. "}
-                        {result!.input.environment.source_name === "Synthetic development scenario"
-                          ? "Weather values are synthetic demonstration inputs."
-                          : result!.input.environment.source_kind === "gridded_weather_fallback"
-                            ? "Weather is modelled context from Open-Meteo, not an official local observation or confirmation of this report."
-                            : result!.input.environment.source_kind === "manual_development_input"
-                              ? "Manually entered environmental values are unverified."
-                              : "Confirm environmental observations and their relevance to the incident."}
-                      </p>
-                      <p>Report time: {formatTime(result!.input.timestamp)} · Context time: {formatTime(result!.input.environment.observed_at)}</p>
-                    </div>
-                  </div>
-                  <article
-                    className={`panel assessment-overview severity-${assessment.severity}`}
-                  >
-                    <div className="overview-top">
-                      <span className="location-label">
-                        <MapPin size={13} /> {assessment.location}
-                      </span>
-                      <span className="severity-badge">
-                        <i />
-                        {assessment.severity} severity
-                      </span>
-                    </div>
-                    <h3>{words(assessment.disaster_type)}</h3>
-                    <p>{assessment.situation_report}</p>
-                    <div className="generation-meta">
-                      <span>
-                        <Sparkles size={12} /> {result!.metadata.model}
-                      </span>
-                      <span>
-                        {(result!.metadata.latency_ms / 1000).toFixed(1)}s
-                        generation
-                      </span>
-                      <span>Generated {formatTime(result!.metadata.generated_at)}</span>
-                    </div>
-                  </article>
-                  <article className="panel evidence-panel">
-                    <div className="card-heading">
-                      <ShieldCheck size={18} />
-                      <h3>Why this severity?</h3>
-                      <span>
-                        {assessment.severity_evidence.length} evidence items
-                      </span>
-                    </div>
-                    {assessment.severity_evidence.map((e, i) => (
-                      <div className="evidence-item" key={i}>
-                        <span className="evidence-index">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <div>
-                          <p>{e.statement}</p>
-                          <span className="evidence-source">
-                            {sourceLabels[e.source] || words(e.source)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    <p className="evidence-footnote">
-                      Model-generated explanations cite supplied source
-                      categories; factual grounding still requires human review.
-                    </p>
-                  </article>
-                  <div className="result-pair">
-                    <article className="panel result-card">
-                      <h3>Affected groups</h3>
-                      <ItemList items={assessment.affected_people} />
-                    </article>
-                    <article className="panel result-card">
-                      <h3>Resources to consider</h3>
-                      <ItemList items={assessment.resources_required} />
-                    </article>
-                  </div>
-                  <article className="panel result-card">
-                    <div className="card-heading">
-                      <Activity size={17} />
-                      <h3>Recommended response</h3>
-                      <span>For human review</span>
-                    </div>
-                    <ItemList items={assessment.recommended_actions} numbered />
-                  </article>
-                  <article className="panel result-card unknowns">
-                    <div className="card-heading">
-                      <CircleHelp size={18} />
-                      <h3>What we still need to know</h3>
-                    </div>
-                    <ItemList items={assessment.missing_information} />
-                  </article>
-                  <details className="panel input-snapshot">
-                    <summary>
-                      <FileText size={15} /> Inspect the exact assessment input{" "}
-                      <ChevronDown size={15} />
-                    </summary>
-                    <pre>{JSON.stringify(result!.input, null, 2)}</pre>
-                  </details>
-                  <p className="advisory-note">
-                    <ShieldCheck size={14} /> Advisory output. No responders
-                    have been contacted and no resources dispatched.
-                  </p>
-                </div>
-              )}
-            </section>
-          </div>
-          <footer>
-            <span>
-              CrisisLens AI <i /> Chennai pilot · V0.4
-            </span>
-            <span>Tambaram / Chromepet / Velachery</span>
-          </footer>
-        </main>
-      </div>
-    </div>
-  );
+  const outlook = context?.outlook, news = context?.sources.filter(s => s.kind === "news") || [];
+  const activeContext = result?.context || context, configured = health?.providers[provider]?.configured, answer = result?.recommendation;
+  const panelContext = panel?.current ? context : activeContext;
+  const panelSources = panelContext?.sources.filter(s => panel?.all || panel?.ids.includes(s.id)) || [];
+  return <div className="app-shell">
+    <header className="site-header">
+      <a className="brand" href="#"><span className="brand-symbol"><Layers3 size={20}/></span><span>CrisisLens<span className="brand-ai"> AI</span></span></a>
+      <nav aria-label="Primary"><a href="#how-it-works">How it works</a><button onClick={() => openPanel("Sources & coverage", context?.coverage_note || "We retrieve modelled weather and recent publisher-feed reports for the selected locality.", [], "sources", true, true)}>Our sources <ArrowUpRight size={13}/></button></nav>
+      <button className="pilot-pill" onClick={() => setSettings(!settings)} aria-expanded={settings}><span className={configured ? "live-dot" : "offline-dot"}/> Chennai pilot <ChevronDown size={13}/></button>
+      {settings && <div className="settings-popover"><strong>Generation settings</strong><label>Provider<select value={provider} disabled={busy} onChange={e => { reset(); setProvider(e.target.value as Provider); }}><option value="groq">Groq · free tier</option><option value="gemini">Gemini</option><option value="openai">OpenAI</option></select></label><p>{configured ? "Key configured; live usage depends on provider limits." : "Add a provider key to backend .env."}</p><small>Keys stay on the backend.</small></div>}
+    </header>
+    <main>
+      <section className="hero"><div className="hero-copy"><div className="eyebrow"><HeartHandshake size={14}/> BUILT FOR PEOPLE WHO SHOW UP</div><h1>Know where your<br/><span>help is needed.</span></h1><p className="hero-description">Turn a question into a clearer next step.<br className="desktop-break"/> Explore local context, thoughtful recommendations<br className="desktop-break"/> and the evidence behind every answer.</p><div className="hero-assurance"><ShieldCheck size={16}/> Source-linked answers. Human decisions.</div></div>
+        <div className="hero-art" aria-hidden="true"><div className="map-grid"/><svg viewBox="0 0 420 310"><path d="M-30 200Q80 105 180 165T450 70M30 350Q130 190 90-10M250-10Q180 110 280 150T360 350M-10 70Q100 90 170 40T440 170" fill="none" stroke="#cbded9" strokeWidth="20"/><path d="M-30 200Q80 105 180 165T450 70M30 350Q130 190 90-10M250-10Q180 110 280 150T360 350M-10 70Q100 90 170 40T440 170" fill="none" stroke="#f8fbf9" strokeWidth="14"/><circle cx="220" cy="155" r="68" fill="#c6e9dc" opacity=".6"/><circle cx="220" cy="155" r="40" fill="#a1d8c5" opacity=".6"/><circle cx="220" cy="155" r="8" fill="#26765f"/><circle cx="100" cy="210" r="6" fill="#e89676"/><circle cx="310" cy="70" r="6" fill="#e89676"/></svg><span className="map-caption">Illustration · Chennai pilot</span><div className="art-label"><MapPin size={14}/>{location}<span>Local context</span></div><div className="art-note"><ShieldCheck size={15}/><span>Look closer.<br/><strong>Understand the evidence.</strong></span></div></div>
+      </section>
+      <section className="question-section" aria-label="Ask CrisisLens"><form className="question-card" onSubmit={generate}>
+        <div className="question-top"><span><Sparkles size={16}/> What would you like to know?</span><label className="location-picker"><MapPin size={15}/><select aria-label="Area" value={location} disabled={busy} onChange={e => { reset(); setLocation(e.target.value as Location); setQuestion(""); setDemo(false); }} >{locations.map(l => <option key={l}>{l}</option>)}</select><ChevronDown size={13}/></label></div>
+        <label className="sr-only" htmlFor="question">Your question</label><textarea ref={textareaRef} id="question" value={question} maxLength={4000} disabled={busy} onChange={e => { reset(); setQuestion(e.target.value); }} placeholder={`“We have food kits and a volunteer team. What should we prepare for in ${location}?”`} />
+        <div className="question-bottom"><span className="question-tip">Add your resources, observations or the decision you need to make.</span><button className="primary-button" disabled={busy || !configured || question.trim().length < 5}>{busy ? <><LoaderCircle size={16} className="spin"/> Building your recommendation…</> : <>Get recommendations <ArrowRight size={17}/></>}</button></div>{demo && <div className="demo-note">Hypothetical demonstration. Live sources are excluded from this answer.</div>}
+      </form><div className="prompt-row"><span>Start with a question</span>{["Check a reported incident", "Plan supplies", "When is rain forecast?"].map((p,i) => <button key={p} disabled={busy} onClick={() => askPrompt(i)}>{i === 0 ? <Search size={13}/> : i === 1 ? <Package size={13}/> : <CloudRain size={13}/>} {p}</button>)}<button className="demo-button" disabled={busy} onClick={() => { reset(); setDemo(!demo); setQuestion(!demo ? `Hypothetical demonstration: knee-deep water near ${location} is reported to have stopped traffic, with elderly residents unable to leave their homes. We have 50 food kits and 6 volunteers. What should we verify and prepare?` : ""); }}>{demo ? "Exit demo" : "Try a hypothetical scenario"}</button></div>
+      {!configured && health && <p className="connection-note">Generation needs a backend provider key. Open “Chennai pilot” for settings.</p>}{error && <div className="error-notice" role="alert"><HelpCircle size={18}/><span>{error}</span><button aria-label="Dismiss error" onClick={() => setError("")}><X size={16}/></button></div>}</section>
+      <section className="local-context" aria-label="Local context"><div className="section-heading"><div><span className="eyebrow">A LITTLE CONTEXT BEFORE YOU DECIDE</span><h2>Closer to {location}.</h2></div><button className="text-button" disabled={contextBusy || busy} onClick={() => { reset(); setRefresh(r => r + 1); }}><RefreshCw size={14} className={contextBusy ? "spin" : ""}/>{contextBusy ? "Gathering sources…" : "Refresh context"}</button></div><div className="context-grid">
+        <article className="weather-card"><div className="card-eyebrow"><CloudRain size={16}/> WEATHER & RAIN OUTLOOK <span>Modelled</span></div>{contextBusy ? <div className="loading-line"><LoaderCircle size={20} className="spin"/> Fetching local weather…</div> : outlook ? <><div className="weather-main"><strong>{outlook.environment.temperature_c ?? "—"}<small>°C</small></strong><div><span>{location}</span><p><Wind size={12}/>{outlook.environment.wind_speed_kmph ?? "—"} km/h wind</p></div><CloudRain className="weather-icon" size={42}/></div><div className="rain-answer"><span>Next forecast rain window</span><strong>{outlook.next_rain ? `${time(outlook.next_rain.time, true)} · preceding hour` : outlook.forecast_complete ? "No ≥0.1 mm rain forecast in the next 24h" : "Rain timing unavailable — incomplete forecast"}</strong><p>{outlook.next_rain ? `${outlook.next_rain.precipitation_mm} mm forecast${outlook.next_rain.probability_percent !== null ? ` · ${outlook.next_rain.probability_percent}% precipitation probability` : " · probability unavailable"}` : "A forecast cannot confirm whether an incident has occurred."}</p></div><div className="rain-timeline" aria-label="Hourly rain forecast">{outlook.hours.slice(0,12).map(h => <div key={h.time} title={`${time(h.time)}: ${h.precipitation_mm ?? "unknown"} mm`}><i style={{height: `${h.precipitation_mm === null ? 5 : Math.min(36, 5 + h.precipitation_mm * 5)}px`}} className={h.precipitation_mm === null ? "unknown-bar" : h.precipitation_mm > 0 ? "rain-bar" : "dry-bar"}/><small>{new Date(h.time).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "numeric" })}</small></div>)}</div><button className="source-link" onClick={() => openPanel("Weather source & timing", "The forecast uses the grid near the selected locality, not an incident-specific station. Rain estimates cover the preceding hour and are uncertain.", ["W1"], "sources", true)}>Open-Meteo · {time(outlook.environment.observed_at)} <ArrowUpRight size={13}/></button></> : <div className="empty-context"><CloudRain size={25}/><strong>Weather unavailable</strong><p>We’ll show the retrieval gap rather than assumed measurements.</p></div>}</article>
+        <article className="news-card"><div className="card-eyebrow"><FileText size={15}/> RECENT RELEVANT REPORTS <span>Last 7 days</span></div>{contextBusy ? <div className="loading-line"><LoaderCircle size={18} className="spin"/> Checking publisher feeds…</div> : news.length ? news.slice(0,3).map(s => <button key={s.id} className="news-item" onClick={() => openPanel(s.title, s.limitation, [s.id], "sources", true)}><div><span className="publisher">{s.publisher} · {s.scope === "locality" ? "Locality mention" : "Chennai-wide context"}</span><strong>{s.title}</strong><small>{time(s.published_at)} · See source</small></div><ArrowUpRight size={17}/></button>) : <div className="empty-context"><Search size={25}/><strong>No recent matching report retrieved</strong><p>This does not prove that nothing happened. Feeds may be unavailable or lack local coverage.</p></div>}<div className="feed-status">{context?.source_status.filter(s => s.name !== "Open-Meteo").map(s => <span key={s.name}><i className={s.status === "available" ? "available" : "limited"}/>{s.name}: {s.status === "available" ? "retrieved" : s.status === "no_recent_match" ? "no recent match" : "unavailable"}</span>)}</div></article>
+      </div>{contextError && <p className="context-warning">{contextError}</p>}<p className="coverage-caption">Weather is modelled. News is publisher-reported. Neither alone verifies a local emergency.</p></section>
+      {answer && result && <section className="result-section" ref={resultRef} aria-label="Your recommendation"><div className="section-heading"><div><span className="eyebrow">YOUR QUESTION, A CLEARER NEXT STEP</span><h2>Here’s what the evidence tells us.</h2></div><button className="text-button" onClick={download}><Download size={14}/> Save briefing</button></div>{result.question.demo && <div className="demo-note prominent">Synthetic demonstration — not a live incident. No independent verification is claimed.</div>}<div className="results-grid"><div className="main-answer"><article className="answer-card"><div className="answer-location"><MapPin size={14}/>{result.question.location}<span>Source-linked interpretation · human review</span></div><h3>{answer.headline}</h3><p>{answer.answer}</p><button className="why-button" onClick={() => openPanel("Why this recommendation?", answer.answer, [...new Set(answer.recommendations.flatMap(i => i.source_ids))])}><HelpCircle size={15}/> Why this recommendation? <ArrowRight size={15}/></button><small>Generated {time(result.metadata.generated_at)} · Sources retrieved {time(result.context.retrieved_at)}</small></article><div className="claims-block"><h3>Look closer at the claims</h3><p className="muted">Open a claim to inspect what supports it—and what doesn’t.</p>{answer.claims.map((claim,i) => <button className="claim-card" key={i} onClick={() => openPanel(claim.statement, claim.explanation, claim.source_ids)}><span className={`claim-status ${claim.status}`}>{claim.status === "supported" ? <Check size={13}/> : <HelpCircle size={13}/>} {statusLabels[claim.status]}</span><strong>{claim.statement}</strong><span className="claim-cta">Why? Check evidence <ArrowUpRight size={14}/></span></button>)}</div><div className="next-steps"><h3>Recommended next steps</h3>{answer.recommendations.map((item,i) => <button className="step-card" key={i} onClick={() => openPanel(item.title, item.explanation, item.source_ids)}><span className="step-number">0{i+1}</span><div><strong>{item.title}</strong><p>{item.explanation}</p></div><ArrowUpRight size={16}/></button>)}</div></div><aside className="response-sidebar"><article className="side-card"><h3><Users size={17}/> People to consider</h3><p className="side-description">Groups mentioned in the supplied evidence.</p>{answer.affected_groups.length ? answer.affected_groups.map((item,i) => <button key={i} className="side-item" onClick={() => openPanel(item.title, item.explanation, item.source_ids)}><strong>{item.title}<ArrowUpRight size={13}/></strong><p>{item.explanation}</p><small>{item.source_ids.length && item.source_ids.every(id => id === "U1") ? "User-reported · unverified" : "Source-linked · verify locally"}</small></button>) : <div className="side-empty">Affected groups have not been established. Local verification is needed.</div>}</article><article className="side-card supplies-card"><h3><Package size={17}/> Supplies to consider</h3><p className="side-description">Suggestions are not confirmed supply requests.</p>{answer.supplies.length ? answer.supplies.map((item,i) => <button key={i} className="side-item" onClick={() => openPanel(item.title, item.explanation, item.source_ids)}><strong>{item.title}<ArrowUpRight size={13}/></strong><p>{item.explanation}</p><small>{item.source_ids.length ? "Based on cited inputs · check evidence" : "Preparedness suggestion · need not confirmed"}</small></button>) : <div className="side-empty">No specific supply needs established.</div>}</article><button className="missing-card" onClick={() => openPanel("What still needs checking", "These gaps matter before volunteers act.", [], "gaps")}><HelpCircle size={19}/><div><strong>What still needs checking</strong><p>{answer.missing_information.length} open questions</p></div><ArrowRight size={16}/></button></aside></div><p className="result-limitation">Source references are checked against retrieved records. They do not guarantee that the model interpreted those records correctly. No resources have been dispatched.</p></section>}
+      {<section className="how-section" id="how-it-works"><div className="section-heading"><div><span className="eyebrow">LESS GUESSWORK. MORE UNDERSTANDING.</span><h2>A recommendation you can look inside.</h2></div></div><div className="how-grid"><article><span>01</span><Compass size={24}/><h3>Tell us what matters</h3><p>Choose your area. Describe the situation, your resources or the question you need answered.</p></article><article><span>02</span><Search size={24}/><h3>Bring the evidence closer</h3><p>We gather weather context and relevant publisher-feed reports, with their times and coverage limits.</p></article><article><span>03</span><ShieldCheck size={24}/><h3>Understand before acting</h3><p>Explore the recommendation. Open the sources, question the reasoning and see what remains unknown.</p></article></div></section>}
+    </main><footer><a className="brand" href="#"><HeartHandshake size={18}/> CrisisLens AI</a><span>Chennai pilot · NGO decision support</span><span>Made for informed human decisions.</span></footer>
+    {panel && <><button className="drawer-backdrop" aria-label="Close evidence panel" onClick={() => setPanel(null)}/><aside ref={panelRef} tabIndex={-1} className="evidence-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title"><div className="drawer-heading"><span className="eyebrow">LOOK INSIDE THE ANSWER</span><button aria-label="Close panel" onClick={() => setPanel(null)}><X size={20}/></button></div><h2 id="drawer-title">{panel.title}</h2><div className="drawer-tabs" role="tablist" aria-label="Evidence views">{(["why", "sources", "gaps"] as const).map(tab => <button role="tab" aria-selected={panel.tab === tab} key={tab} onClick={() => setPanel({...panel, tab})}>{tab === "why" ? "Why this?" : tab === "sources" ? "Evidence" : "Unknowns"}</button>)}</div><div className="drawer-body">{panel.tab === "why" && <><div className="reasoning-card"><Sparkles size={18}/><h3>Reasoning to review</h3><p>{panel.explanation}</p></div><p className="drawer-note">This explanation is an interpretation of supplied evidence, not independent confirmation.</p><button className="why-button" onClick={() => setPanel({...panel, tab: "sources"})}>Inspect the source records <ArrowRight size={14}/></button></>}{panel.tab === "sources" && <><p className="drawer-note">Original source records. Publication time and retrieval time are different. City-wide news is context, not locality confirmation.</p>{panelSources.length ? panelSources.map(s => <article className="source-record" key={s.id}><div className="source-record-top"><span>{s.kind === "user" ? "Unverified input" : s.kind === "weather" ? "Modelled weather" : "Publisher report"}</span><small>{s.id}</small></div><h3>{s.title}</h3><p className="source-publisher">{s.publisher} · {s.scope === "city_context" ? "Chennai-wide context" : "Local context"}</p><blockquote>{s.excerpt}</blockquote>{s.kind === "weather" && s.data && <dl><dt>Temperature</dt><dd>{s.data.temperature_c ?? "Unknown"} °C</dd><dt>Preceding-hour rainfall</dt><dd>{s.data.rainfall_1h_mm ?? "Unknown"} mm</dd><dt>Wind speed</dt><dd>{s.data.wind_speed_kmph ?? "Unknown"} km/h</dd>{s.next_rain && <><dt>Next rain window ends</dt><dd>{time(s.next_rain.time)} · preceding hour</dd><dt>Forecast rainfall</dt><dd>{s.next_rain.precipitation_mm ?? "Unknown"} mm · {s.next_rain.probability_percent ?? "Unknown"}% probability</dd></>}</dl>}<dl><dt>Published / observed</dt><dd>{time(s.published_at)}</dd><dt>Retrieved</dt><dd>{time(s.retrieved_at)}</dd><dt>Available content</dt><dd>{s.content_scope.replaceAll("_", " ")}</dd></dl><p className="source-limitation">{s.limitation}</p>{s.url && <a href={s.url} target="_blank" rel="noopener noreferrer" className="original-link">Open original source <ExternalLink size={13}/></a>}</article>) : <div className="side-empty">No source records were retrieved for this view. An answer without evidence is not confirmation.</div>}<p className="drawer-note">{panelContext?.coverage_note}</p>{panelContext?.source_status.map(s => <p className="source-health" key={s.name}>{s.name}<span>{s.status.replaceAll("_", " ")}</span></p>)}</>}{panel.tab === "gaps" && <><h3>Before making an operational decision</h3>{answer?.missing_information.length ? <ul className="gap-list">{answer.missing_information.map((gap,i) => <li key={i}><HelpCircle size={15}/>{gap}</li>)}</ul> : <p className="drawer-note">No complete incident verification is available. Confirm location, timing, needs and access with local contacts.</p>}<div className="reasoning-card"><ShieldCheck size={18}/><p>Weather and news cannot establish safe routes or confirm supply demand by themselves. Human verification remains essential.</p></div></>}</div></aside></>}
+  </div>;
 }

@@ -1,138 +1,44 @@
 # CrisisLens faculty demo
 
-## Before presenting
+## Prepare before class
 
-1. Configure one real provider key in the backend `.env` (never in frontend code).
-2. Follow the README to install dependencies, build the frontend and start FastAPI.
-3. Open `http://127.0.0.1:8000`; check **Backend connected** and **Key configured**.
-4. Generate one sample assessment before class to confirm key validity, model access,
-   network connectivity and quota. Provider generation has not been verified merely
-   because the key indicator is green.
+1. Pull main, install dependencies, build the frontend and restart FastAPI (README commands).
+2. Keep your existing Groq key in backend `.env`: `CRISISLENS_PROVIDER=groq` and `GROQ_MODEL=openai/gpt-oss-120b`. Keys never belong in frontend code.
+3. Open http://127.0.0.1:8000. The Chennai pilot menu shows provider configuration; a configured key does not prove quota or connectivity.
+4. Generate a real recommendation before class. Weather and publisher feeds also need internet access. Source failures are displayed, with no invented replacements.
+5. If generation fails, run `python -m crisislens.doctor --provider groq --env-file-only` and share only its safe output. The doctor exercises the legacy assessment pipeline; also test the new recommendation flow in the browser.
 
-## Show the working flow
+## Present the new NGO workflow
 
-1. **Load Velachery.** Explain that the report and measurements are synthetic inputs
-   used to exercise the pipeline, not a current Chennai incident.
-2. **Inspect context.** Expand measurements and provenance. Distinguish sample water
-   level from an official flood observation. The incident timestamp is preserved.
-3. **Generate.** The browser sends the input to FastAPI, which runs the existing
-   CrisisLens pipeline. The model synthesizes the report and context; Pydantic
-   validates the output and locality before the frontend displays it.
-4. **Explain the result.** Show the situation report, evidence supporting severity,
-   affected groups, proposed resources and advisory response actions. Evidence source
-   tags are model-generated categories and require human review.
-5. **Show missing evidence.** Select Unknown context. The old result is cleared.
-   Regenerate and inspect which unavailable measurements the model identifies. Do
-   not promise an exact severity change: different evidence can change its judgment.
-6. **Try Chromepet or Tambaram.** Generate a different report to demonstrate fresh
-   inference. You can edit the text to describe a milder or more severe situation.
-7. **Inspect and export.** Expand the exact input snapshot and download the JSON,
-   including model identity and generation time.
+1. **Choose an area.** Velachery, Tambaram and Chromepet are the current pilot. Explain that the hero map is an illustration, not a live incident map.
+2. **Inspect local context.** Show modelled temperature, wind and the next forecast rain window. Forecast rainfall covers the hour preceding its timestamp. Missing forecast values stay unknown. Open the weather source to see its values, time and original API URL.
+3. **Inspect reports.** Recent matching publisher-feed reports include publication times and original links. Distinguish locality mentions from Chennai-wide context. An unavailable feed or no matching report does not prove that an incident is false.
+4. **Ask a useful question.** Click Plan supplies: “Our NGO has 50 food kits and 6 volunteers available for Velachery. What needs can be established, and what should we prepare before deciding where to help?” Click Get recommendations.
+5. **Explore the answer.** Open Why this recommendation, then Evidence. Sources shown belong to that specific recommendation. An uncited preparedness suggestion has no supporting source attached. The Unknowns tab lists checks needed before action.
+6. **Inspect claims and people.** Click a claim, an affected group or a suggested supply. User reports remain unverified; weather alone cannot establish flooding, stranded residents, supply demand or safe roads. “Not enough evidence” is a legitimate result, not a declaration that the report is false.
+7. **Save the briefing.** Download JSON containing the question, recommendation, source records and generation metadata. Editing the question clears the previous answer.
+8. **Optional synthetic demonstration.** Try a hypothetical scenario. Its answer excludes live weather and news and is labelled synthetic. The home context cards remain separate live context; do not present the hypothetical incident as current news.
 
-## Weather demonstration
+## Explain the architecture
 
-Use Fetch weather only when current weather is relevant to the report. It replaces
-the environmental context with Open-Meteo gridded/modelled weather and displays
-its observation time. This is not an official Chennai station observation and
-does not establish the truth of a citizen report. Water level remains unknown.
+“CrisisLens helps NGOs ask a question and inspect recommendations alongside their sources. Deterministic code retrieves weather and publisher-feed context before the model runs. The model produces structured recommendations. The backend validates the schema, locality and citation IDs, and prevents weather or an unverified user report from independently supporting operational incident claims. Humans review the sources and decide what to do.”
 
-If retrieval fails, the interface reports the failure and retains the prior,
-labelled context. Explicitly choose Unknown or Manual if proceeding.
+The recommendation route is `/api/recommend`; context is `/api/context/{location}`. The previous `/api/analyse` assessment route and synthetic benchmark remain available. Providers share one interface and can accept either output schema. Groq hosts the GPT-OSS model using a Groq key; it does not use OpenAI API credits.
 
-## What to say about the architecture
+## Describe limitations honestly
 
-“CrisisLens is a Generative AI situation-intelligence pipeline. Deterministic code
-collects context before generation. A configurable LLM synthesizes the supplied
-evidence into a structured advisory assessment. Humans verify evidence and decide
-the response.”
-
-The application does not autonomously contact authorities, dispatch resources or
-choose tools. It uses pretrained Gemini/OpenAI models rather than a newly trained
-disaster-prediction model. Weather values are inference context, not classifier
-training features.
-
-## Honest limitations
-
-- Sample reports and sample rainfall values are synthetic. The result notice
-  identifies them even after fetching real-time modelled weather: replacing
-  weather does not turn the sample report into a verified incident. Generation
-  time is separate from the report and environmental context timestamps.
-- No street flood-depth observation is supplied by the samples or Open-Meteo.
-  A generic water-level value without a gauge reference cannot establish street
-  depth, and one observation cannot establish a rate of increase or causality.
-- Official Chennai flood-monitor and IMD integrations are still pending.
-- Locality grounding is currently a minimal static context layer, not a rich RAG database.
-- The 24-scenario benchmark is synthetic, not a validation on real Chennai disaster records.
-- Schema validation proves structure, not factual correctness or response suitability.
-- This demo has no persistent incident history and requires a working provider connection.
-
-## Troubleshooting generation
-
-For a free-plan demo, create a key at https://console.groq.com/keys, remain on
-the Free plan, and set `CRISISLENS_PROVIDER=groq`, `GROQ_API_KEY` and
-`GROQ_MODEL=openai/gpt-oss-120b` in local `.env`. Run
-`python -m crisislens.doctor --provider groq --env-file-only`.
-Groq hosts this open-weight model; this route does not use OpenAI API credits.
-Rebuild the frontend (`cd frontend`, `npm run build`, `cd ..`) and restart the
-backend to use the new Groq selector. Generation still follows the same
-non-agentic, grounded and validated pipeline. Active free-plan allowances are
-account-specific: https://console.groq.com/docs/rate-limits.
-
-Run `python -m crisislens.doctor` from the repository root with the virtual
-environment activated. It tests all configured providers with a synthetic
-scenario through the same generation, schema and locality validation used by
-the UI. It consumes normal API usage, makes one attempt per provider and prints
-no keys or raw provider bodies. Select the provider reporting `ready` in the UI.
-If none passes, share the safe output rather than `.env`.
-
-If `shell_overrides_env_file` lists settings, your shell is taking precedence
-over the edited file. Compare with `python -m crisislens.doctor --env-file-only`.
-That option only affects the diagnostic process. For the server, correct the
-listed variables in your terminal/deployment settings, then restart it.
-In Windows PowerShell, for example, remove a stale session variable with
-`Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue` (use the listed
-variable name); the restarted server will then load its value from `.env`.
-Avoid posting any key values.
-
-`quota_zero` means Google's structured quota details report a limit of zero;
-check active model limits and the project tier in AI Studio. `daily_quota`
-means a daily allowance was exceeded. Creating another key in the same project
-does not create a new quota allocation. Reference:
-https://ai.google.dev/gemini-api/docs/rate-limits.
-
-For new Gemini projects set `GEMINI_MODEL=gemini-3.5-flash-lite` in `.env`.
-Gemini 2.5 access is restricted to previous users according to Google's model
-documentation; it is not a reliable default for a newly created key/project.
-Changing `.env.example` or pulling new code does **not** overwrite your local `.env`.
-Restart the backend after editing it. Existing shell environment variables take
-precedence over `.env`; verify the model shown in the workspace after restart.
-
-The UI now distinguishes authentication, permission, model access, quota,
-billing, request rejection, timeout and connectivity failures. The backend logs
-`CrisisLens failure: provider=... category=... upstream_status=...` without the
-key, report, provider response body or raw traceback. Share that safe line when
-asking for help. An HTTP 429 can mean a rate limit or exhausted/unavailable model
-quota, not necessarily a bad key.
-
-References: https://ai.google.dev/gemini-api/docs/deprecations and
-https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite.
-
-For OpenAI, a 429 is not always temporary throttling. The safe diagnostic now
-includes a documented `provider_code` when available. `insufficient_quota`,
-`credit_balance_exhausted` and organization/project spend or usage limit codes
-require reviewing the API account's credits or limits. `rate_limit_exceeded`
-and `slow_down` indicate throttling. ChatGPT subscriptions are billed separately
-and do not provide the API credit balance used by this application.
-
-Check the organization/project associated with your key in API Billing and
-Limits: https://platform.openai.com/account/billing/overview and
-https://platform.openai.com/settings/organization/limits.
-Reference: https://developers.openai.com/api/docs/guides/error-codes.
+- Weather is a gridded model product, not a street-level flood sensor. No official local water-level, road-access or shelter-capacity integration is connected.
+- News covers bounded excerpts from two Chennai publisher feeds, filtered to hazard-related reports from the past seven days. It is limited coverage, not a complete or independently verified emergency feed. The publication date may differ from the event date.
+- Context is cached for five minutes; Refresh context requests a fresh retrieval. Each briefing retains the exact records supplied during its generation.
+- Citation validation proves that a referenced record exists, not that the model's interpretation is correct. Supported/contradicted labels remain source-linked interpretations for review.
+- Suggestions are not confirmed supply requests. No dispatch, authority contact, route guarantee, automated decision or persistent incident history is provided.
+- This is a localhost academic pilot, not a validated operational emergency service. Publisher reuse/licensing and official source access must be resolved before production use. Indian Express RSS terms specify personal, non-commercial use: https://indianexpress.com/rss/.
+- Browser tests use labelled fixtures; passing tests does not prove live provider or publisher availability. The existing benchmark is synthetic, not real-disaster accuracy validation.
 
 ## Next implementation stages
 
-1. Run real provider benchmarks and inspect failures; justify model selection using results.
-2. Integrate verified local observations with timestamps, freshness and provenance checks.
-3. Add curated Chennai source retrieval without autonomous tool selection.
-4. Improve grounding evaluation with human review and adversarial/incomplete reports.
-5. Add secured deployment and incident history when the core assessment is reliable.
+1. Add timestamped official alerts, local observations and verified NGO field reports, with source access and reuse permission.
+2. Evaluate claim support and recommendation usefulness against human-reviewed real cases; measure unsupported claims, freshness and locality relevance.
+3. Expand area search, show geographic coverage and deduplicate event reports once reliable sources are available.
+4. Add verified needs, shelter capacity and resource matching; retain human approval before dispatch.
+5. Add access control, history, rate limits and operational monitoring for deployment.

@@ -20,14 +20,14 @@ class GeminiProvider(LLMProvider):
         self.model = (model or os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL
         self.client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=90000, retry_options=types.HttpRetryOptions(attempts=1)))
 
-    def generate_json(self, *, system_prompt: str, user_prompt: str) -> dict[str, Any]:
+    def generate_json(self, *, system_prompt: str, user_prompt: str, output_schema: dict[str, Any] | None = None) -> dict[str, Any]:
         response = self.client.models.generate_content(
             model=self.model,
             contents=user_prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
                 response_mime_type="application/json",
-                response_schema=CrisisOutput,
+                response_schema=output_schema or CrisisOutput,
             ),
         )
         if not response.text:

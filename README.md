@@ -1,10 +1,10 @@
 # CrisisLens AI
 
-CrisisLens AI is a **location-aware Generative AI pipeline** that converts unstructured disaster reports plus environmental context into structured crisis intelligence for Chennai.
+CrisisLens AI is a **source-linked recommendation system for NGOs**. Ask about a locality, available resources or a reported incident, then inspect the recommendations, supporting records and missing information before deciding how to help.
 
 Initial pilot locations: **Tambaram, Chromepet, and Velachery**.
 
-## Run the custom React workspace (V0.4)
+## Run the NGO recommendation interface
 
 The faculty demo now has a React + TypeScript frontend and a FastAPI backend.
 Use **Python 3.11+ and Node.js 22+**. From the repository root:
@@ -34,8 +34,7 @@ variables overriding `.env`, unavailable Gemini quotas, and OpenAI billing vs
 rate limits. It never prints keys or upstream response bodies. If shell settings
 are stale, compare using `python -m crisislens.doctor --env-file-only`; this only
 prefers file values for that check. Correct the shell settings and restart the
-backend before using the UI. A `ready` result verifies the actual pipeline,
-whereas `/api/health` only checks whether a key is present.
+backend before using the UI. A `ready` result verifies the legacy assessment pipeline; also generate a recommendation in the browser to verify the new route. `/api/health` only checks whether a key is present.
 
 ### Free-plan setup with Groq
 
@@ -85,23 +84,33 @@ Open http://127.0.0.1:5173. Vite proxies `/api` to the local backend.
 `npm run preview` alone does not connect to the backend; use the single-server
 demo or the development proxy.
 
-Workspace features:
+Interface features:
 
-- editable synthetic scenarios for all three pilot localities,
-- sample, unknown, manual and live gridded-weather context with explicit provenance,
-- real provider generation through the existing validated pipeline,
-- severity evidence, situation report, resources, advisory actions and unknowns,
-- input snapshot, provider/model metadata, generation duration and JSON export,
-- clear errors for missing credentials, failed weather and invalid model responses.
+- question-first hero with locality selection and prompts for incidents, supplies and rain,
+- modelled weather and a 24-hour rain outlook, with missing values kept unknown,
+- recent relevant publisher-feed reports, original links and source availability,
+- interactive Why / Evidence / Unknowns panels for claims and recommendations,
+- affected groups and suggested supplies linked to the specific input records,
+- mobile evidence sheet, keyboard-accessible panels and JSON briefing export,
+- clearly separated hypothetical scenarios and safe provider errors.
 
-There is **no simulated AI output fallback**. Without a valid provider key,
-you can inspect inputs and the interface but cannot generate an assessment.
-This localhost demo has no authentication or persistence. Do not expose it
-publicly without access controls, request limits and a privacy review.
+There is **no simulated AI output fallback**. A working provider is required to generate recommendations. Source retrieval failures remain visible rather than becoming fabricated evidence.
 
-Faculty demo walkthrough: `docs/FACULTY_DEMO.md`.
+### Retrieval and evidence
 
-## Core pipeline
+`GET /api/context/{location}` gathers Open-Meteo weather/forecast and bounded excerpts from the Indian Express and The Hindu Chennai RSS feeds. Reports are filtered to hazard-related mentions from the last seven days; city-wide reports are labelled context rather than locality confirmation. Retrieval is cached for five minutes. `?refresh=true` bypasses that cache.
+
+`POST /api/recommend` accepts `{ "location": "Velachery", "question": "What should our volunteers verify?", "provider": "groq", "demo": false }`. It retrieves source records on the server, marks the question as unverified user input and validates the model's schema, locality and citation IDs. A weather record or user report alone cannot support an operational incident claim. Unknown citation IDs are rejected. Hypothetical mode excludes live sources from generation.
+
+A source-linked claim is an interpretation for human review. Checking citation IDs does not validate semantic accuracy. Weather cannot prove flooding, affected-person counts, supply demand or safe roads. Missing news does not establish that a report is false. There are no official incident alerts or street-level observations connected yet.
+
+Publisher coverage is limited and feeds may be unavailable. No full articles are scraped. The Indian Express RSS catalog specifies personal, non-commercial use; this academic prototype requires a licensing/access review before production NGO use: https://indianexpress.com/rss/. Weather documentation: https://open-meteo.com/en/docs.
+
+This localhost demo has no authentication, dispatch or persistent incident history. Deployment requires access controls, request limits and appropriate handling of submitted reports.
+
+Faculty walkthrough and next stages: [docs/FACULTY_DEMO.md](docs/FACULTY_DEMO.md).
+
+## Legacy assessment pipeline
 
 Citizen / field report  
 -> input validation  
@@ -146,6 +155,7 @@ The model layer is abstracted behind one provider interface. The same pipeline c
 
 - Gemini,
 - OpenAI,
+- Groq-hosted GPT-OSS,
 - a future local/open-source model.
 
 This lets us benchmark models under identical prompts and output schemas instead of designing the project around one vendor.
