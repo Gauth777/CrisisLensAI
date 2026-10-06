@@ -22,6 +22,21 @@ lets you choose Gemini or OpenAI; keys remain on the backend. A configured key
 is not proof of valid credentials or available quota. Restart the backend after
 changing `.env`.
 
+Before the demo, verify a **real, schema-validated assessment** with:
+
+```bash
+python -m crisislens.doctor
+```
+
+This makes one synthetic assessment per configured provider (normal API usage),
+prints safe diagnostics and tells you which provider passed. It detects shell
+variables overriding `.env`, unavailable Gemini quotas, and OpenAI billing vs
+rate limits. It never prints keys or upstream response bodies. If shell settings
+are stale, compare using `python -m crisislens.doctor --env-file-only`; this only
+prefers file values for that check. Correct the shell settings and restart the
+backend before using the UI. A `ready` result verifies the actual pipeline,
+whereas `/api/health` only checks whether a key is present.
+
 Build the frontend, then start the single-server demo:
 
 ```bash

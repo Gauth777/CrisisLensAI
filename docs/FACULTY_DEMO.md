@@ -61,6 +61,28 @@ training features.
 
 ## Troubleshooting generation
 
+Run `python -m crisislens.doctor` from the repository root with the virtual
+environment activated. It tests both configured providers with a synthetic
+scenario through the same generation, schema and locality validation used by
+the UI. It consumes normal API usage, makes one attempt per provider and prints
+no keys or raw provider bodies. Select the provider reporting `ready` in the UI.
+If none passes, share the safe output rather than `.env`.
+
+If `shell_overrides_env_file` lists settings, your shell is taking precedence
+over the edited file. Compare with `python -m crisislens.doctor --env-file-only`.
+That option only affects the diagnostic process. For the server, correct the
+listed variables in your terminal/deployment settings, then restart it.
+In Windows PowerShell, for example, remove a stale session variable with
+`Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue` (use the listed
+variable name); the restarted server will then load its value from `.env`.
+Avoid posting any key values.
+
+`quota_zero` means Google's structured quota details report a limit of zero;
+check active model limits and the project tier in AI Studio. `daily_quota`
+means a daily allowance was exceeded. Creating another key in the same project
+does not create a new quota allocation. Reference:
+https://ai.google.dev/gemini-api/docs/rate-limits.
+
 For new Gemini projects set `GEMINI_MODEL=gemini-3.5-flash-lite` in `.env`.
 Gemini 2.5 access is restricted to previous users according to Google's model
 documentation; it is not a reliable default for a newly created key/project.

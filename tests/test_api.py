@@ -161,3 +161,56 @@ def test_unknown_provider_code_is_not_exposed():
     error.code = "private-key"
     error.body = {"error": {"code": "private report"}}
     assert safe_provider_code(error) is None
+
+
+@pytest.mark.parametrize("value,quota_id,category", [("0", "GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "quota_zero"), ("20", "GenerateRequestsPerDayPerProjectPerModel-FreeTier", "daily_quota"), ("20", "GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "quota")])
+def test_gemini_structured_quota_details(client, monkeypatch, value, quota_id, category):
+    from google.genai.errors import APIError
+    monkeypatch.setenv("GEMINI_API_KEY", "private-key")
+    def fail(name):
+        raise APIError(429, {"error": {"message": "private-key private report", "details": [{
+            "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+            "violations": [{"quotaId": quota_id, "quotaValue": value}]
+        }]}})
+    monkeypatch.setattr(api, "build_provider", fail)
+    response = client.post("/api/analyse", json={"input": sample(client)})
+    assert response.headers["X-CrisisLens-Error"] == category
+    assert "private-key" not in response.text
+    assert "private report" not in response.text
+
+
+def test_repository_env_loading_does_not_depend_on_working_directory(tmp_path, monkeypatch):
+    from crisislens import config
+    env_file = tmp_path / ".env"
+    env_file.write_text("OPENAI_MODEL=file-model\n")
+    monkeypatch.setattr(config, "ENV_FILE", env_file)
+    monkeypatch.delenv("OPENAI_MODEL", raising=False)
+    monkeypatch.chdir(tmp_path.parent)
+    config.load_environment()
+    assert api.os.environ["OPENAI_MODEL"] == "file-model"
+
+
+def test_repository_env_preserves_deployment_settings(tmp_path, monkeypatch):
+    from crisislens import config
+    env_file = tmp_path / ".env"
+    env_file.write_text("OPENAI_MODEL=file-model\n")
+    monkeypatch.setattr(config, "ENV_FILE", env_file)
+    monkeypatch.setenv("OPENAI_MODEL", "deployment-model")
+    config.load_environment()
+    assert api.os.environ["OPENAI_MODEL"] == "deployment-model"
+
+
+def test_zero_quota_can_be_in_message_with_structured_violation():
+    from google.genai.errors import APIError
+    from crisislens.provider_failures import classify_provider_failure
+    error = APIError(429, {"error": {"message": "Quota exceeded for metric, limit: 0, private-key", "details": [{
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]
+    }]}})
+    assert classify_provider_failure(error).category == "quota_zero"
+
+
+def test_blank_settings_do_not_misreport_ready_key(monkeypatch):
+    monkeypatch.setenv("OPENAI_MODEL", "  ")
+    monkeypatch.setenv("OPENAI_API_KEY", "  ")
+    assert api.health()["providers"]["openai"] == {"configured": False, "model": "gpt-5-mini"}

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 
 import httpx
 
@@ -28,6 +29,42 @@ def safe_provider_code(exc: Exception) -> str | None:
     return None
 
 
+def gemini_quota_kind(exc: Exception) -> str | None:
+    """Inspect structured Google quota violations, without exposing the body."""
+    body = getattr(exc, "details", None)
+    if not isinstance(body, dict):
+        return None
+    error = body.get("error", body)
+    if not isinstance(error, dict):
+        return None
+    details = error.get("details", [])
+    if not isinstance(details, list):
+        return None
+    daily = False
+    has_quota_failure = False
+    for detail in details:
+        if not isinstance(detail, dict) or detail.get("@type") != "type.googleapis.com/google.rpc.QuotaFailure":
+            continue
+        has_quota_failure = True
+        violations = detail.get("violations", [])
+        if not isinstance(violations, list):
+            continue
+        for violation in violations:
+            if not isinstance(violation, dict):
+                continue
+            if violation.get("quotaValue") in ("0", 0):
+                return "quota_zero"
+            quota_id = violation.get("quotaId", "")
+            if isinstance(quota_id, str) and "PerDay" in quota_id:
+                daily = True
+    # Some Google responses omit quotaValue and put the limit only in the
+    # message. Recognise just this fixed numeric signal; never display it raw.
+    message = error.get("message", "")
+    if has_quota_failure and isinstance(message, str) and re.search(r"\blimit:\s*0(?:\s|,|\.|$)", message):
+        return "quota_zero"
+    return "daily_quota" if daily else None
+
+
 def classify_provider_failure(exc: Exception) -> ProviderFailure:
     status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
     status = status if isinstance(status, int) and not isinstance(status, bool) else None
@@ -37,10 +74,17 @@ def classify_provider_failure(exc: Exception) -> ProviderFailure:
     if status == 401 or (status == 400 and invalid_key):
         return ProviderFailure("authentication", "The provider rejected the API key. Check the key in backend .env, its project and restrictions, then restart the backend.", status)
     if status == 403:
+        if "reported as leaked" in str(exc).lower():
+            return ProviderFailure("blocked_key", "Google has blocked this API key as leaked. Create a replacement Gemini key in AI Studio, update backend .env and restart. Do not reuse the blocked key.", status)
         return ProviderFailure("permission", "The provider denied access (HTTP 403). Check API-key restrictions, project permissions and access to the configured model.", status)
     if status == 404:
         return ProviderFailure("model_access", "The configured model/resource is unavailable (HTTP 404). Verify the model ID and project access. New Gemini projects should use GEMINI_MODEL=gemini-3.5-flash-lite rather than the restricted 2.5 models; restart after editing .env.", status)
     if status == 429:
+        quota_kind = gemini_quota_kind(exc)
+        if quota_kind == "quota_zero":
+            return ProviderFailure("quota_zero", "Gemini reports a quota limit of zero for this request. Check this model's active limits and project tier in Google AI Studio. A new key in the same project or repeated retries will not enable that quota.", status, 429)
+        if quota_kind == "daily_quota":
+            return ProviderFailure("daily_quota", "Gemini reports an exhausted daily quota. Check the reset and active model limits in Google AI Studio. Rapid retries will not restore the daily allowance.", status, 429)
         code = safe_provider_code(exc)
         billing_messages = {
             "insufficient_quota": "OpenAI reports insufficient API quota. Check the key's organization/project credit balance, API billing and enforced usage/spend limits. ChatGPT subscriptions do not include API credits; retrying alone will not resolve this.",

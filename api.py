@@ -9,13 +9,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from crisislens.config import build_provider
+from crisislens.config import build_provider, load_environment
 from crisislens.data import OpenMeteoWeatherClient
 from crisislens.data.environment import EnvironmentalDataError
 from crisislens.pipeline import CrisisLensPipeline
@@ -25,7 +24,7 @@ from crisislens.schemas import CrisisInput, CrisisOutput, PilotLocation
 
 ROOT = Path(__file__).resolve().parent
 logger = logging.getLogger(__name__)
-load_dotenv(ROOT / ".env")
+load_environment()
 ProviderName = Literal["gemini", "openai"]
 app = FastAPI(title="CrisisLens AI", version="0.4.0")
 app.add_middleware(
@@ -61,8 +60,8 @@ def health():
         "status": "ok",
         "version": "0.4.0",
         "providers": {
-            "gemini": {"configured": bool(os.getenv("GEMINI_API_KEY")), "model": os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL},
-            "openai": {"configured": bool(os.getenv("OPENAI_API_KEY")), "model": os.getenv("OPENAI_MODEL", "gpt-5-mini")},
+            "gemini": {"configured": bool((os.getenv("GEMINI_API_KEY") or "").strip()), "model": (os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL},
+            "openai": {"configured": bool((os.getenv("OPENAI_API_KEY") or "").strip()), "model": (os.getenv("OPENAI_MODEL") or "").strip() or "gpt-5-mini"},
         },
     }
 

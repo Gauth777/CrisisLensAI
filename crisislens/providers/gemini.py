@@ -14,10 +14,10 @@ DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 
 class GeminiProvider(LLMProvider):
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
-        key = api_key or os.getenv("GEMINI_API_KEY")
+        key = (api_key or os.getenv("GEMINI_API_KEY") or "").strip()
         if not key:
             raise ValueError("GEMINI_API_KEY is required for the Gemini provider.")
-        self.model = model or os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
+        self.model = (model or os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL
         self.client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=90000, retry_options=types.HttpRetryOptions(attempts=1)))
 
     def generate_json(self, *, system_prompt: str, user_prompt: str) -> dict[str, Any]:

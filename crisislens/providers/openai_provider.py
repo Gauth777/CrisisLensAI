@@ -11,10 +11,10 @@ from ..schemas import CrisisOutput
 
 class OpenAIProvider(LLMProvider):
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
-        key = api_key or os.getenv("OPENAI_API_KEY")
+        key = (api_key or os.getenv("OPENAI_API_KEY") or "").strip()
         if not key:
             raise ValueError("OPENAI_API_KEY is required for the OpenAI provider.")
-        self.model = model or os.getenv("OPENAI_MODEL", "gpt-5-mini")
+        self.model = (model or os.getenv("OPENAI_MODEL") or "").strip() or "gpt-5-mini"
         self.client = OpenAI(api_key=key, timeout=90.0, max_retries=0)
 
     def generate_json(self, *, system_prompt: str, user_prompt: str) -> dict[str, Any]:
