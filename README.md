@@ -155,7 +155,7 @@ Configure one provider in `.env`.
 ```env
 CRISISLENS_PROVIDER=gemini
 GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
 ### OpenAI

@@ -59,6 +59,25 @@ training features.
 - Schema validation proves structure, not factual correctness or response suitability.
 - This demo has no persistent incident history and requires a working provider connection.
 
+## Troubleshooting generation
+
+For new Gemini projects set `GEMINI_MODEL=gemini-3.5-flash-lite` in `.env`.
+Gemini 2.5 access is restricted to previous users according to Google's model
+documentation; it is not a reliable default for a newly created key/project.
+Changing `.env.example` or pulling new code does **not** overwrite your local `.env`.
+Restart the backend after editing it. Existing shell environment variables take
+precedence over `.env`; verify the model shown in the workspace after restart.
+
+The UI now distinguishes authentication, permission, model access, quota,
+billing, request rejection, timeout and connectivity failures. The backend logs
+`CrisisLens failure: provider=... category=... upstream_status=...` without the
+key, report, provider response body or raw traceback. Share that safe line when
+asking for help. An HTTP 429 can mean a rate limit or exhausted/unavailable model
+quota, not necessarily a bad key.
+
+References: https://ai.google.dev/gemini-api/docs/deprecations and
+https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite.
+
 ## Next implementation stages
 
 1. Run real provider benchmarks and inspect failures; justify model selection using results.

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 from datetime import datetime, timezone
@@ -18,9 +19,12 @@ from crisislens.config import build_provider
 from crisislens.data import OpenMeteoWeatherClient
 from crisislens.data.environment import EnvironmentalDataError
 from crisislens.pipeline import CrisisLensPipeline
+from crisislens.provider_failures import classify_provider_failure
+from crisislens.providers.gemini import DEFAULT_GEMINI_MODEL
 from crisislens.schemas import CrisisInput, CrisisOutput, PilotLocation
 
 ROOT = Path(__file__).resolve().parent
+logger = logging.getLogger(__name__)
 load_dotenv(ROOT / ".env")
 ProviderName = Literal["gemini", "openai"]
 app = FastAPI(title="CrisisLens AI", version="0.4.0")
@@ -57,7 +61,7 @@ def health():
         "status": "ok",
         "version": "0.4.0",
         "providers": {
-            "gemini": {"configured": bool(os.getenv("GEMINI_API_KEY")), "model": os.getenv("GEMINI_MODEL", "gemini-2.5-flash")},
+            "gemini": {"configured": bool(os.getenv("GEMINI_API_KEY")), "model": os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL},
             "openai": {"configured": bool(os.getenv("OPENAI_API_KEY")), "model": os.getenv("OPENAI_MODEL", "gpt-5-mini")},
         },
     }
@@ -87,10 +91,12 @@ def analyse(request: AnalysisRequest):
         provider = build_provider(request.provider)
         assessment = CrisisLensPipeline(provider).analyse(request.input)
     except (ValidationError, ValueError, TypeError) as exc:
+        logger.warning("CrisisLens failure: provider=%s category=invalid_assessment", request.provider)
         raise HTTPException(502, "The model returned an invalid assessment. No result was accepted; retry generation.") from exc
     except Exception as exc:
-        # Never return provider exception text: it can contain request details or credentials.
-        raise HTTPException(502, "Model request failed. Check backend credentials, quota, model access and connectivity.") from exc
+        failure = classify_provider_failure(exc)
+        logger.warning("CrisisLens failure: provider=%s category=%s upstream_status=%s error_type=%s", request.provider, failure.category, failure.upstream_status, type(exc).__name__)
+        raise HTTPException(failure.http_status, failure.detail, headers={"X-CrisisLens-Error": failure.category}) from exc
     return AnalysisResponse(
         input=request.input,
         assessment=assessment,

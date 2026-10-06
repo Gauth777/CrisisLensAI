@@ -10,13 +10,15 @@ from google.genai import types
 from .base import LLMProvider
 from ..schemas import CrisisOutput
 
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
+
 class GeminiProvider(LLMProvider):
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
         key = api_key or os.getenv("GEMINI_API_KEY")
         if not key:
             raise ValueError("GEMINI_API_KEY is required for the Gemini provider.")
-        self.model = model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-        self.client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=90000))
+        self.model = model or os.getenv("GEMINI_MODEL") or DEFAULT_GEMINI_MODEL
+        self.client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=90000, retry_options=types.HttpRetryOptions(attempts=1)))
 
     def generate_json(self, *, system_prompt: str, user_prompt: str) -> dict[str, Any]:
         response = self.client.models.generate_content(
@@ -26,7 +28,6 @@ class GeminiProvider(LLMProvider):
                 system_instruction=system_prompt,
                 response_mime_type="application/json",
                 response_schema=CrisisOutput,
-                temperature=0.2,
             ),
         )
         if not response.text:

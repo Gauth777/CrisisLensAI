@@ -71,7 +71,7 @@ def test_location_mismatch_never_becomes_assessment(client, monkeypatch):
     assert "assessment" not in response.json()
 
 
-def test_provider_error_does_not_leak_credentials(client, monkeypatch):
+def test_provider_error_does_not_leak_credentials(client, monkeypatch, caplog):
     monkeypatch.setenv("GEMINI_API_KEY", "private-key")
     def failing_provider(name):
         raise RuntimeError("upstream private-key and private report")
@@ -80,6 +80,9 @@ def test_provider_error_does_not_leak_credentials(client, monkeypatch):
     assert response.status_code == 502
     assert "private-key" not in response.text
     assert "private report" not in response.text
+    assert "private-key" not in caplog.text
+    assert "private report" not in caplog.text
+    assert "category=unexpected" in caplog.text
 
 
 @pytest.mark.parametrize("change", [{"location": "Mumbai"}, {"report": "hi"}, {"report": "     "}, {"report": "x" * 12001}, {"environment": {"humidity_percent": 101}}])
@@ -97,3 +100,38 @@ def test_weather_failure_is_explicit(client, monkeypatch):
     assert response.status_code == 503
     assert "Weather unavailable" in response.json()["detail"]
     assert client.get("/api/weather/Mumbai").status_code == 422
+
+
+@pytest.mark.parametrize("status,category,http_status", [(400, "request_rejected", 502), (401, "authentication", 502), (402, "billing", 502), (403, "permission", 502), (404, "model_access", 502), (429, "quota", 429), (503, "provider_unavailable", 503), (504, "timeout", 504)])
+def test_real_gemini_errors_are_specific_and_safe(client, monkeypatch, caplog, status, category, http_status):
+    from google.genai.errors import APIError
+    monkeypatch.setenv("GEMINI_API_KEY", "private-key")
+    def failing_provider(name):
+        raise APIError(status, {"error": {"message": "private-key private report", "status": "TEST"}})
+    monkeypatch.setattr(api, "build_provider", failing_provider)
+    response = client.post("/api/analyse", json={"input": sample(client)})
+    assert response.status_code == http_status
+    assert response.headers["X-CrisisLens-Error"] == category
+    assert f"upstream_status={status}" in caplog.text
+    assert "private-key" not in response.text + caplog.text
+    assert "private report" not in response.text + caplog.text
+
+
+def test_gemini_invalid_key_400_is_authentication(client, monkeypatch):
+    from google.genai.errors import APIError
+    monkeypatch.setenv("GEMINI_API_KEY", "test-only")
+    def failing_provider(name):
+        raise APIError(400, {"error": {"message": "API key not valid. API_KEY_INVALID"}})
+    monkeypatch.setattr(api, "build_provider", failing_provider)
+    response = client.post("/api/analyse", json={"input": sample(client)})
+    assert response.headers["X-CrisisLens-Error"] == "authentication"
+
+
+def test_gemini_default_and_health_match(monkeypatch):
+    from types import SimpleNamespace
+    from crisislens.providers import gemini
+    from crisislens.providers.gemini import GeminiProvider, DEFAULT_GEMINI_MODEL
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
+    monkeypatch.setattr(gemini.genai, "Client", lambda **kwargs: SimpleNamespace())
+    provider = GeminiProvider(api_key="test-only")
+    assert provider.model == DEFAULT_GEMINI_MODEL == api.health()["providers"]["gemini"]["model"]
