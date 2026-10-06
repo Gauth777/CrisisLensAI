@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 PilotLocation = Literal["Tambaram", "Chromepet", "Velachery"]
 Severity = Literal["low", "medium", "high", "critical"]
@@ -30,11 +30,16 @@ class EnvironmentalData(BaseModel):
 
 class CrisisInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    report: str = Field(min_length=5)
+    report: str = Field(min_length=5, max_length=12000)
     location: PilotLocation
     timestamp: str | None = None
     environment: EnvironmentalData = Field(default_factory=EnvironmentalData)
     source_label: str = "citizen_or_field_report"
+
+    @field_validator("report", mode="before")
+    @classmethod
+    def trim_report(cls, value):
+        return value.strip() if isinstance(value, str) else value
 
 class EvidenceItem(BaseModel):
     model_config = ConfigDict(extra="forbid")

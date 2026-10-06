@@ -14,3 +14,7 @@ build/
 .vscode/
 
 benchmark_results/
+node_modules/
+*.tsbuildinfo
+test-results/
+playwright-report/

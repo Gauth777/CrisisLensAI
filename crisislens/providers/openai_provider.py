@@ -7,6 +7,7 @@ from typing import Any
 from openai import OpenAI
 
 from .base import LLMProvider
+from ..schemas import CrisisOutput
 
 class OpenAIProvider(LLMProvider):
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
@@ -14,13 +15,14 @@ class OpenAIProvider(LLMProvider):
         if not key:
             raise ValueError("OPENAI_API_KEY is required for the OpenAI provider.")
         self.model = model or os.getenv("OPENAI_MODEL", "gpt-5-mini")
-        self.client = OpenAI(api_key=key)
+        self.client = OpenAI(api_key=key, timeout=90.0, max_retries=0)
 
     def generate_json(self, *, system_prompt: str, user_prompt: str) -> dict[str, Any]:
         response = self.client.responses.create(
             model=self.model,
             instructions=system_prompt,
             input=user_prompt,
+            text={"format": {"type": "json_schema", "name": "crisis_assessment", "strict": True, "schema": CrisisOutput.model_json_schema()}},
         )
         text = response.output_text
         if not text:
