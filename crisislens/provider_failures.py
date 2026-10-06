@@ -12,6 +12,20 @@ class ProviderFailure:
     detail: str
     upstream_status: int | None = None
     http_status: int = 502
+    provider_code: str | None = None
+
+
+def safe_provider_code(exc: Exception) -> str | None:
+    """Only expose documented codes, never arbitrary provider response fields."""
+    known = {"insufficient_quota", "credit_balance_exhausted", "billing_hard_limit_reached", "organization_spend_limit_exceeded", "project_spend_limit_exceeded", "organization_usage_limit_exceeded", "rate_limit_exceeded", "slow_down"}
+    body = getattr(exc, "body", None)
+    error = body.get("error", body) if isinstance(body, dict) else {}
+    if not isinstance(error, dict):
+        error = {}
+    for candidate in (getattr(exc, "code", None), error.get("code"), getattr(exc, "type", None), error.get("type")):
+        if isinstance(candidate, str) and candidate in known:
+            return candidate
+    return None
 
 
 def classify_provider_failure(exc: Exception) -> ProviderFailure:
@@ -27,6 +41,19 @@ def classify_provider_failure(exc: Exception) -> ProviderFailure:
     if status == 404:
         return ProviderFailure("model_access", "The configured model/resource is unavailable (HTTP 404). Verify the model ID and project access. New Gemini projects should use GEMINI_MODEL=gemini-3.5-flash-lite rather than the restricted 2.5 models; restart after editing .env.", status)
     if status == 429:
+        code = safe_provider_code(exc)
+        billing_messages = {
+            "insufficient_quota": "OpenAI reports insufficient API quota. Check the key's organization/project credit balance, API billing and enforced usage/spend limits. ChatGPT subscriptions do not include API credits; retrying alone will not resolve this.",
+            "credit_balance_exhausted": "OpenAI reports an exhausted prepaid API credit balance. Check API Billing for the key's organization. Retrying alone will not restore access.",
+            "billing_hard_limit_reached": "The API account has reached an enforced billing limit. Check API Billing and Limits for the key's organization/project.",
+            "organization_spend_limit_exceeded": "The OpenAI organization has reached its enforced spend limit. Review organization limits; repeated retries will not restore access.",
+            "project_spend_limit_exceeded": "The OpenAI project has reached its enforced spend limit. Review this key's project settings; repeated retries will not restore access.",
+            "organization_usage_limit_exceeded": "The OpenAI organization has reached its assigned usage limit. Check the organization Limits page; repeated retries will not restore access.",
+        }
+        if code in billing_messages:
+            return ProviderFailure("api_billing_quota", billing_messages[code], status, 429, code)
+        if code in {"rate_limit_exceeded", "slow_down"}:
+            return ProviderFailure("rate_limit", "OpenAI requests are being throttled. Reduce request frequency and wait before retrying; follow Retry-After if supplied. This error does not establish that your API credits are exhausted.", status, 429, code)
         return ProviderFailure("quota", "Provider quota or rate limit reached (HTTP 429). Check this project's model limits and billing in the provider console. Wait for reset if exhausted; if the limit is zero, retrying alone will not fix it.", status, 429)
     if status == 402:
         return ProviderFailure("billing", "The provider reports a billing/credit problem (HTTP 402). Check the API project's billing status and available credits.", status)

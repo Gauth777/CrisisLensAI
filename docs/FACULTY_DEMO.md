@@ -78,6 +78,18 @@ quota, not necessarily a bad key.
 References: https://ai.google.dev/gemini-api/docs/deprecations and
 https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite.
 
+For OpenAI, a 429 is not always temporary throttling. The safe diagnostic now
+includes a documented `provider_code` when available. `insufficient_quota`,
+`credit_balance_exhausted` and organization/project spend or usage limit codes
+require reviewing the API account's credits or limits. `rate_limit_exceeded`
+and `slow_down` indicate throttling. ChatGPT subscriptions are billed separately
+and do not provide the API credit balance used by this application.
+
+Check the organization/project associated with your key in API Billing and
+Limits: https://platform.openai.com/account/billing/overview and
+https://platform.openai.com/settings/organization/limits.
+Reference: https://developers.openai.com/api/docs/guides/error-codes.
+
 ## Next implementation stages
 
 1. Run real provider benchmarks and inspect failures; justify model selection using results.

@@ -95,8 +95,11 @@ def analyse(request: AnalysisRequest):
         raise HTTPException(502, "The model returned an invalid assessment. No result was accepted; retry generation.") from exc
     except Exception as exc:
         failure = classify_provider_failure(exc)
-        logger.warning("CrisisLens failure: provider=%s category=%s upstream_status=%s error_type=%s", request.provider, failure.category, failure.upstream_status, type(exc).__name__)
-        raise HTTPException(failure.http_status, failure.detail, headers={"X-CrisisLens-Error": failure.category}) from exc
+        logger.warning("CrisisLens failure: provider=%s category=%s upstream_status=%s error_type=%s provider_code=%s", request.provider, failure.category, failure.upstream_status, type(exc).__name__, failure.provider_code)
+        headers = {"X-CrisisLens-Error": failure.category}
+        if failure.provider_code:
+            headers["X-CrisisLens-Provider-Code"] = failure.provider_code
+        raise HTTPException(failure.http_status, failure.detail, headers=headers) from exc
     return AnalysisResponse(
         input=request.input,
         assessment=assessment,

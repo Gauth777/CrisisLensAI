@@ -135,3 +135,29 @@ def test_gemini_default_and_health_match(monkeypatch):
     monkeypatch.setattr(gemini.genai, "Client", lambda **kwargs: SimpleNamespace())
     provider = GeminiProvider(api_key="test-only")
     assert provider.model == DEFAULT_GEMINI_MODEL == api.health()["providers"]["gemini"]["model"]
+
+
+@pytest.mark.parametrize("code,category", [("insufficient_quota", "api_billing_quota"), ("credit_balance_exhausted", "api_billing_quota"), ("organization_spend_limit_exceeded", "api_billing_quota"), ("project_spend_limit_exceeded", "api_billing_quota"), ("organization_usage_limit_exceeded", "api_billing_quota"), ("rate_limit_exceeded", "rate_limit"), ("slow_down", "rate_limit")])
+def test_openai_429_distinguishes_billing_from_throttling(client, monkeypatch, caplog, code, category):
+    import httpx
+    from openai import RateLimitError
+    monkeypatch.setenv("OPENAI_API_KEY", "private-key")
+    def failing_provider(name):
+        response = httpx.Response(429, request=httpx.Request("POST", "https://api.openai.com/v1/responses"))
+        raise RateLimitError("private-key private report", response=response, body={"error": {"code": code, "type": "insufficient_quota", "message": "private-key private report"}})
+    monkeypatch.setattr(api, "build_provider", failing_provider)
+    response = client.post("/api/analyse", json={"input": sample(client), "provider": "openai"})
+    assert response.status_code == 429
+    assert response.headers["X-CrisisLens-Error"] == category
+    assert response.headers["X-CrisisLens-Provider-Code"] == code
+    assert f"provider_code={code}" in caplog.text
+    assert "private-key" not in response.text + caplog.text
+    assert "private report" not in response.text + caplog.text
+
+
+def test_unknown_provider_code_is_not_exposed():
+    from crisislens.provider_failures import safe_provider_code
+    error = RuntimeError("private-key")
+    error.code = "private-key"
+    error.body = {"error": {"code": "private report"}}
+    assert safe_provider_code(error) is None
