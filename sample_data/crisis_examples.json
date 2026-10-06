@@ -10,7 +10,7 @@
       "humidity_percent": 91,
       "wind_speed_kmph": 31,
       "wind_direction_deg": null,
-      "water_level_m": 1.7,
+      "water_level_m": null,
       "observed_at": "2026-10-05T18:30:00+05:30",
       "source_name": "Synthetic development scenario",
       "source_kind": "manual_development_input"

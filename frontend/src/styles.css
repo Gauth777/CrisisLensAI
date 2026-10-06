@@ -450,6 +450,19 @@ textarea::placeholder {
   color: #d4ab6c;
   margin-top: 8px;
 }
+
+.assessment-provenance {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #eed4a0;
+  border-radius: 12px;
+  background: #fff8e9;
+  color: #71511c;
+}
+.assessment-provenance > svg { flex-shrink: 0; margin-top: 2px; }
+.assessment-provenance strong { font-size: 14px; }
+.assessment-provenance p { margin: 7px 0 0; font-size: 12px; line-height: 1.6; }
 .label-row .context-tag {
   color: #95baa9;
   border: 1px solid #31483f;

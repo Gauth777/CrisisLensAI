@@ -53,6 +53,13 @@ training features.
 
 ## Honest limitations
 
+- Sample reports and sample rainfall values are synthetic. The result notice
+  identifies them even after fetching real-time modelled weather: replacing
+  weather does not turn the sample report into a verified incident. Generation
+  time is separate from the report and environmental context timestamps.
+- No street flood-depth observation is supplied by the samples or Open-Meteo.
+  A generic water-level value without a gauge reference cannot establish street
+  depth, and one observation cannot establish a rate of increase or causality.
 - Official Chennai flood-monitor and IMD integrations are still pending.
 - Locality grounding is currently a minimal static context layer, not a rich RAG database.
 - The 24-scenario benchmark is synthetic, not a validation on real Chennai disaster records.

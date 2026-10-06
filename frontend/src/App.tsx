@@ -759,6 +759,29 @@ export default function App() {
                 </div>
               ) : (
                 <div className="assessment-content">
+                  <div className="assessment-provenance" role="note">
+                    <TriangleAlert size={18} />
+                    <div>
+                      <strong>
+                        {result!.input.source_label === "development_example_not_live_data" || result!.input.environment.source_name === "Synthetic development scenario"
+                          ? "Synthetic demonstration — not a live incident"
+                          : "Assessment of a supplied report — verification required"}
+                      </strong>
+                      <p>
+                        {result!.input.source_label === "development_example_not_live_data"
+                          ? "The incident report is fictional. This assessment does not establish that flooding or rainfall is happening in this locality. "
+                          : "The report contains supplied claims; generation does not independently confirm the incident. "}
+                        {result!.input.environment.source_name === "Synthetic development scenario"
+                          ? "Weather values are synthetic demonstration inputs."
+                          : result!.input.environment.source_kind === "gridded_weather_fallback"
+                            ? "Weather is modelled context from Open-Meteo, not an official local observation or confirmation of this report."
+                            : result!.input.environment.source_kind === "manual_development_input"
+                              ? "Manually entered environmental values are unverified."
+                              : "Confirm environmental observations and their relevance to the incident."}
+                      </p>
+                      <p>Report time: {formatTime(result!.input.timestamp)} · Context time: {formatTime(result!.input.environment.observed_at)}</p>
+                    </div>
+                  </div>
                   <article
                     className={`panel assessment-overview severity-${assessment.severity}`}
                   >
@@ -781,7 +804,7 @@ export default function App() {
                         {(result!.metadata.latency_ms / 1000).toFixed(1)}s
                         generation
                       </span>
-                      <span>{formatTime(result!.metadata.generated_at)}</span>
+                      <span>Generated {formatTime(result!.metadata.generated_at)}</span>
                     </div>
                   </article>
                   <article className="panel evidence-panel">

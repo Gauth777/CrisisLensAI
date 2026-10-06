@@ -102,6 +102,8 @@ test("generation renders API evidence, exports input and clears stale results on
   await expect(
     page.getByRole("heading", { name: "Why this severity?" }),
   ).toBeVisible();
+  await expect(page.getByRole("note")).toContainText("Synthetic demonstration — not a live incident");
+  await expect(page.getByRole("note")).toContainText("Weather values are synthetic demonstration inputs.");
   await expect(
     page.getByText(assessment.severity_evidence[0].statement),
   ).toBeVisible();
@@ -176,4 +178,27 @@ test("mobile workspace has no horizontal overflow", async ({ page }) => {
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+});
+
+test("live weather does not relabel a synthetic incident as real", async ({ page }) => {
+  await boot(page);
+  await page.route("**/api/weather/*", (route) => route.fulfill({ json: {
+    rainfall_1h_mm: 0, rainfall_24h_mm: 0, temperature_c: 30,
+    water_level_m: null, source_name: "Open-Meteo modelled weather",
+    source_kind: "gridded_weather_fallback", observed_at: "2026-10-07T00:00:00+05:30",
+  } }));
+  await page.route("**/api/analyse", (route) => {
+    const submitted = route.request().postDataJSON();
+    expect(submitted.input.source_label).toBe("development_example_not_live_data");
+    expect(submitted.input.environment.rainfall_1h_mm).toBe(0);
+    expect(submitted.input.environment.water_level_m).toBeNull();
+    return route.fulfill({ json: { input: submitted.input, assessment,
+      metadata: { provider: "gemini", model: "test-model", generated_at: "2026-10-07T00:01:00+05:30", latency_ms: 1000 } } });
+  });
+  await page.getByRole("button", { name: /Velachery Urban flooding/ }).click();
+  await page.getByRole("button", { name: "Fetch weather" }).click();
+  await expect(page.getByText("Gridded fallback", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Generate assessment" }).click();
+  await expect(page.getByRole("note")).toContainText("The incident report is fictional.");
+  await expect(page.getByRole("note")).toContainText("Weather is modelled context from Open-Meteo");
 });
