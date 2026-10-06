@@ -32,8 +32,6 @@ Data acquisition happens before LLM invocation in deterministic application code
 
 ## Environmental grounding
 
-V0.2 adds a source-aware environmental layer.
-
 Source precedence is:
 
 1. Chennai Flood Monitor / RTFF & SDSS — preferred local official source.
@@ -54,6 +52,31 @@ The model layer is abstracted behind one provider interface. The same pipeline c
 - a future local/open-source model.
 
 This lets us benchmark models under identical prompts and output schemas instead of designing the project around one vendor.
+
+## Controlled model evaluation
+
+V0.3 adds a **24-scenario synthetic benchmark** covering all three pilot locations equally:
+
+- 8 Tambaram
+- 8 Chromepet
+- 8 Velachery
+
+The evaluator measures:
+
+- execution success,
+- JSON/schema validity,
+- disaster-type accuracy,
+- severity accuracy and ordinal error,
+- evidence-concept recall,
+- resource-concept recall,
+- missing-information recall,
+- unsupported-claim violations,
+- latency,
+- a transparent 100-point composite score.
+
+The evaluator is deterministic; it does not use another LLM as a judge.
+
+Full methodology: `docs/BENCHMARKING.md`.
 
 ## Setup
 
@@ -85,27 +108,53 @@ OPENAI_API_KEY=your_key_here
 OPENAI_MODEL=gpt-5-mini
 ```
 
-## Run
+## Run one CrisisLens scenario
 
-Use the stored development scenario:
+Stored development context:
 
 ```bash
 python demo.py --scenario velachery
 ```
 
-Replace its development weather values with current gridded weather context:
+Replace it with current gridded weather context:
 
 ```bash
 python demo.py --scenario velachery --live-weather
 ```
 
-Available scenarios:
+## Benchmark a model
 
-- `tambaram`
-- `chromepet`
-- `velachery`
+Fast smoke benchmark:
 
-The `--live-weather` option does **not** imply that the values are official station observations. Provenance is included in the environmental payload as `gridded_weather_fallback`.
+```bash
+python benchmark.py --provider gemini --limit 3
+```
+
+Full Gemini benchmark:
+
+```bash
+python benchmark.py --provider gemini
+```
+
+Full OpenAI benchmark:
+
+```bash
+python benchmark.py --provider openai
+```
+
+Compare both providers:
+
+```bash
+python benchmark.py --provider both
+```
+
+Run only one pilot locality:
+
+```bash
+python benchmark.py --provider gemini --location Velachery
+```
+
+Benchmark output is saved as JSON and CSV in `benchmark_results/`.
 
 ## Tests
 
@@ -115,26 +164,28 @@ Tests do not require an API key.
 pytest -q
 ```
 
-## Current milestone: V0.2
+## Current milestone: V0.3
 
 Completed:
 
+- model-agnostic provider interface
 - Pydantic input/output contracts
-- evidence-grounded severity
-- explicit missing-information handling
 - deterministic non-agentic prompt
-- Gemini provider
-- OpenAI provider
+- Gemini and OpenAI adapters
 - Chennai pilot locality layer
-- source provenance
-- live weather fallback
-- offline environmental parser tests
-- offline inference pipeline tests
+- environmental provenance
+- live gridded-weather fallback
+- explicit missing-information handling
+- evidence-grounded severity output
+- 24 controlled benchmark scenarios
+- transparent deterministic evaluation metrics
+- JSON + CSV benchmark reports
+- offline pipeline, weather and evaluation tests
 
 Next:
 
-1. verify/integrate a stable Chennai Flood Monitor data path,
-2. integrate IMD after deploy-time IP whitelisting if feasible,
-3. build 30-50 controlled crisis evaluation scenarios,
-4. benchmark candidate LLMs for schema adherence, groundedness, hallucination rate, latency and cost,
-5. add dashboard/UI after model evaluation.
+1. run the benchmark with real Gemini/OpenAI credentials,
+2. compare the actual scores and inspect failure cases,
+3. refine prompt/schema where failures are systematic,
+4. verify a stable Chennai Flood Monitor integration path,
+5. add UI only after the model pipeline is sufficiently reliable.
