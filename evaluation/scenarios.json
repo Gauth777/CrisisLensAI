@@ -1,0 +1,1569 @@
+[
+  {
+    "id": "TAM-01",
+    "title": "Minor rainfall without disruption",
+    "location": "Tambaram",
+    "rationale": "Tests whether the model avoids escalating a low-impact weather report.",
+    "input": {
+      "report": "Light rain is continuing in Tambaram. Roads remain passable and no disruption or stranded people are reported.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 2,
+        "rainfall_24h_mm": 8,
+        "temperature_c": 29,
+        "humidity_percent": 78,
+        "wind_speed_kmph": 10,
+        "wind_direction_deg": 110,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "heavy_rainfall",
+      "severity": "low",
+      "evidence_term_groups": [
+        [
+          "light rain",
+          "roads remain passable"
+        ],
+        [
+          "no disruption",
+          "no stranded"
+        ]
+      ],
+      "resource_term_groups": [],
+      "missing_information_term_groups": [
+        [
+          "future rainfall",
+          "forecast"
+        ],
+        [
+          "water level"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "TAM-02",
+    "title": "Localized waterlogging slows traffic",
+    "location": "Tambaram",
+    "rationale": "Tests moderate severity from mobility impact without entrapment.",
+    "input": {
+      "report": "Water has collected along a low section of a local road in Tambaram. Cars are moving slowly, but the road is still open and no one is trapped.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 18,
+        "rainfall_24h_mm": 54,
+        "temperature_c": 27,
+        "humidity_percent": 90,
+        "wind_speed_kmph": 16,
+        "wind_direction_deg": 130,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "waterlogging",
+      "severity": "medium",
+      "evidence_term_groups": [
+        [
+          "water has collected",
+          "waterlogging"
+        ],
+        [
+          "moving slowly",
+          "road is still open"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "traffic",
+          "road management"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "depth",
+          "water depth"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "TAM-03",
+    "title": "Residential flooding with elderly stranded",
+    "location": "Tambaram",
+    "rationale": "Tests high severity when homes are affected and vulnerable residents require help.",
+    "input": {
+      "report": "Floodwater has entered several ground-floor homes in Tambaram. Two elderly residents are reported unable to leave one house without assistance.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 46,
+        "rainfall_24h_mm": 136,
+        "temperature_c": 26.5,
+        "humidity_percent": 94,
+        "wind_speed_kmph": 24,
+        "wind_direction_deg": 150,
+        "water_level_m": 1.4,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "ground-floor homes"
+        ],
+        [
+          "elderly",
+          "unable to leave"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "rescue",
+          "evacuation"
+        ],
+        [
+          "medical",
+          "first aid"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "water depth"
+        ],
+        [
+          "exact number",
+          "affected residents"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "TAM-04",
+    "title": "Tree fall blocks road during strong winds",
+    "location": "Tambaram",
+    "rationale": "Tests infrastructure damage reasoning without inventing casualties.",
+    "input": {
+      "report": "Strong winds have brought down a large tree across a road in Tambaram. The road is blocked and a nearby power line appears damaged. No injuries are reported.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 12,
+        "rainfall_24h_mm": 48,
+        "temperature_c": 27,
+        "humidity_percent": 86,
+        "wind_speed_kmph": 58,
+        "wind_direction_deg": 170,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "infrastructure_damage",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "large tree",
+          "road is blocked"
+        ],
+        [
+          "power line",
+          "damaged"
+        ],
+        [
+          "strong winds"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "utility",
+          "electricity"
+        ],
+        [
+          "road clearance",
+          "tree removal",
+          "traffic"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "live wire",
+          "electrical hazard status"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "TAM-05",
+    "title": "Unconscious patient isolated by floodwater",
+    "location": "Tambaram",
+    "rationale": "Tests critical escalation from immediate life risk plus access failure.",
+    "input": {
+      "report": "A resident in Tambaram reports an unconscious adult inside a house while floodwater outside is waist deep and an ambulance cannot reach the street directly.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 52,
+        "rainfall_24h_mm": 162,
+        "temperature_c": 26,
+        "humidity_percent": 95,
+        "wind_speed_kmph": 28,
+        "wind_direction_deg": 160,
+        "water_level_m": 1.8,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "medical_emergency",
+      "severity": "critical",
+      "evidence_term_groups": [
+        [
+          "unconscious"
+        ],
+        [
+          "waist deep"
+        ],
+        [
+          "ambulance cannot reach"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "medical",
+          "ambulance"
+        ],
+        [
+          "rescue",
+          "boat",
+          "evacuation"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "patient condition",
+          "vital signs"
+        ],
+        [
+          "exact address",
+          "access route"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "TAM-06",
+    "title": "Small electrical fire",
+    "location": "Tambaram",
+    "rationale": "Tests fire classification and safe advisory generation.",
+    "input": {
+      "report": "Smoke and visible flames are reported from an electrical distribution box beside a residential lane in Tambaram. Residents nearby have moved away from the box and no injuries are reported.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 0,
+        "rainfall_24h_mm": 6,
+        "temperature_c": 31,
+        "humidity_percent": 68,
+        "wind_speed_kmph": 8,
+        "wind_direction_deg": 90,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "fire",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "visible flames",
+          "electrical distribution box"
+        ],
+        [
+          "no injuries"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "fire service",
+          "fire response"
+        ],
+        [
+          "electrical",
+          "power isolation"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "fire spread"
+        ],
+        [
+          "live electrical supply",
+          "power status"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "TAM-07",
+    "title": "Cyclonic wind damages roofing",
+    "location": "Tambaram",
+    "rationale": "Tests combined wind and rain crisis generation.",
+    "input": {
+      "report": "Very strong winds and heavy rain are affecting Tambaram. Sheet roofing has been torn from multiple homes and debris is moving across the road. No casualties are confirmed.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 34,
+        "rainfall_24h_mm": 104,
+        "temperature_c": 26,
+        "humidity_percent": 93,
+        "wind_speed_kmph": 82,
+        "wind_direction_deg": 190,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "cyclone",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "very strong winds"
+        ],
+        [
+          "roofing",
+          "debris"
+        ],
+        [
+          "heavy rain"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "shelter"
+        ],
+        [
+          "road clearance",
+          "debris"
+        ],
+        [
+          "medical",
+          "first aid"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "number of affected homes"
+        ],
+        [
+          "casualties",
+          "injury count"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "TAM-08",
+    "title": "People on roof during severe inundation",
+    "location": "Tambaram",
+    "rationale": "Tests critical flood severity and rescue-resource generation.",
+    "input": {
+      "report": "Residents report that floodwater has risen above ground-floor window level in a Tambaram street. A family is waiting on a roof and says they cannot exit safely.",
+      "location": "Tambaram",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 68,
+        "rainfall_24h_mm": 211,
+        "temperature_c": 25.5,
+        "humidity_percent": 97,
+        "wind_speed_kmph": 34,
+        "wind_direction_deg": 155,
+        "water_level_m": 2.3,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "critical",
+      "evidence_term_groups": [
+        [
+          "above ground-floor window"
+        ],
+        [
+          "family",
+          "roof"
+        ],
+        [
+          "cannot exit safely"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "rescue",
+          "boat",
+          "evacuation"
+        ],
+        [
+          "medical",
+          "first aid"
+        ],
+        [
+          "shelter"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "family size",
+          "exact number"
+        ],
+        [
+          "water current",
+          "flow speed"
+        ],
+        [
+          "exact location",
+          "address"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-01",
+    "title": "Shallow puddling after rain",
+    "location": "Chromepet",
+    "rationale": "Tests restraint for minor water accumulation.",
+    "input": {
+      "report": "After a brief shower in Chromepet, shallow puddles are visible along the roadside. Traffic is normal and no buildings are affected.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 4,
+        "rainfall_24h_mm": 15,
+        "temperature_c": 29,
+        "humidity_percent": 80,
+        "wind_speed_kmph": 9,
+        "wind_direction_deg": 100,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "waterlogging",
+      "severity": "low",
+      "evidence_term_groups": [
+        [
+          "shallow puddles"
+        ],
+        [
+          "traffic is normal"
+        ],
+        [
+          "no buildings are affected"
+        ]
+      ],
+      "resource_term_groups": [],
+      "missing_information_term_groups": [
+        [
+          "drain condition"
+        ],
+        [
+          "future rainfall",
+          "forecast"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-02",
+    "title": "Road water approaches homes",
+    "location": "Chromepet",
+    "rationale": "Tests medium severity before indoor flooding or entrapment.",
+    "input": {
+      "report": "Rainwater is covering part of a residential road in Chromepet and has reached the entrances of several homes. Vehicles are moving slowly and no residents are trapped.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 24,
+        "rainfall_24h_mm": 72,
+        "temperature_c": 27,
+        "humidity_percent": 91,
+        "wind_speed_kmph": 18,
+        "wind_direction_deg": 135,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "waterlogging",
+      "severity": "medium",
+      "evidence_term_groups": [
+        [
+          "reached the entrances"
+        ],
+        [
+          "vehicles are moving slowly"
+        ],
+        [
+          "no residents are trapped"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "traffic",
+          "road management"
+        ],
+        [
+          "pumping",
+          "drainage"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "water depth"
+        ],
+        [
+          "number of homes"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-03",
+    "title": "Ground-floor homes inundated",
+    "location": "Chromepet",
+    "rationale": "Tests vulnerability-aware flood assessment.",
+    "input": {
+      "report": "Water has entered multiple ground-floor houses in Chromepet. Residents are moving belongings upstairs and one wheelchair user needs assistance leaving the building.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 44,
+        "rainfall_24h_mm": 132,
+        "temperature_c": 26.5,
+        "humidity_percent": 95,
+        "wind_speed_kmph": 22,
+        "wind_direction_deg": 145,
+        "water_level_m": 1.5,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "entered multiple ground-floor houses"
+        ],
+        [
+          "wheelchair",
+          "needs assistance"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "rescue",
+          "evacuation"
+        ],
+        [
+          "accessible transport",
+          "mobility"
+        ],
+        [
+          "shelter"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "exact number",
+          "affected households"
+        ],
+        [
+          "water depth"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-04",
+    "title": "Underpass inaccessible to vehicles",
+    "location": "Chromepet",
+    "rationale": "Tests high transport disruption without inventing rescue needs.",
+    "input": {
+      "report": "A road underpass in Chromepet is reported flooded and vehicles are turning back. No stranded people or submerged vehicles are reported.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 38,
+        "rainfall_24h_mm": 118,
+        "temperature_c": 27,
+        "humidity_percent": 93,
+        "wind_speed_kmph": 20,
+        "wind_direction_deg": 140,
+        "water_level_m": 1.8,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "underpass",
+          "flooded"
+        ],
+        [
+          "vehicles are turning back"
+        ],
+        [
+          "no stranded"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "traffic diversion",
+          "traffic"
+        ],
+        [
+          "barricade",
+          "access control"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "water depth"
+        ],
+        [
+          "duration",
+          "drainage status"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-05",
+    "title": "Collapsed wall with injured resident",
+    "location": "Chromepet",
+    "rationale": "Tests critical structural incident with reported injury.",
+    "input": {
+      "report": "A compound wall has collapsed during heavy rain in Chromepet and one resident is reported injured beneath debris. Neighbours say access is possible only from one side of the lane.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 31,
+        "rainfall_24h_mm": 96,
+        "temperature_c": 26,
+        "humidity_percent": 94,
+        "wind_speed_kmph": 26,
+        "wind_direction_deg": 160,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "infrastructure_damage",
+      "severity": "critical",
+      "evidence_term_groups": [
+        [
+          "wall has collapsed"
+        ],
+        [
+          "injured beneath debris"
+        ],
+        [
+          "one side"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "rescue",
+          "debris"
+        ],
+        [
+          "medical",
+          "ambulance",
+          "first aid"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "injury severity"
+        ],
+        [
+          "exact location",
+          "address"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-06",
+    "title": "Transformer sparks after rain",
+    "location": "Chromepet",
+    "rationale": "Tests electrical fire risk without claiming a confirmed outage.",
+    "input": {
+      "report": "Residents in Chromepet report repeated sparks and smoke from a roadside transformer after rain. People are keeping away and there are no reported injuries.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 10,
+        "rainfall_24h_mm": 36,
+        "temperature_c": 28,
+        "humidity_percent": 88,
+        "wind_speed_kmph": 13,
+        "wind_direction_deg": 120,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "fire",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "sparks",
+          "smoke"
+        ],
+        [
+          "transformer"
+        ],
+        [
+          "no reported injuries"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "fire service",
+          "fire"
+        ],
+        [
+          "electrical utility",
+          "power isolation",
+          "electricity"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "transformer energized",
+          "power status"
+        ],
+        [
+          "fire spread"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-07",
+    "title": "Heavy rain disrupts school access",
+    "location": "Chromepet",
+    "rationale": "Tests moderate impact from access disruption.",
+    "input": {
+      "report": "Persistent heavy rain in Chromepet has made a school approach road difficult to cross on foot. Classes have ended and parents report delays collecting students, but no one is stranded.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 27,
+        "rainfall_24h_mm": 84,
+        "temperature_c": 27,
+        "humidity_percent": 92,
+        "wind_speed_kmph": 21,
+        "wind_direction_deg": 150,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "heavy_rainfall",
+      "severity": "medium",
+      "evidence_term_groups": [
+        [
+          "persistent heavy rain"
+        ],
+        [
+          "difficult to cross"
+        ],
+        [
+          "no one is stranded"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "traffic",
+          "safe access",
+          "pedestrian"
+        ],
+        [
+          "school coordination",
+          "crowd management"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "water depth"
+        ],
+        [
+          "number of students"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "CHR-08",
+    "title": "Residents trapped on upper floor",
+    "location": "Chromepet",
+    "rationale": "Tests critical inundation with unsafe egress.",
+    "input": {
+      "report": "Floodwater in a Chromepet residential lane is reported above chest height outdoors. Several residents are on an upper floor and say the staircase exit to the street is unsafe.",
+      "location": "Chromepet",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 71,
+        "rainfall_24h_mm": 224,
+        "temperature_c": 25.5,
+        "humidity_percent": 98,
+        "wind_speed_kmph": 30,
+        "wind_direction_deg": 165,
+        "water_level_m": 2.4,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "critical",
+      "evidence_term_groups": [
+        [
+          "above chest height"
+        ],
+        [
+          "upper floor"
+        ],
+        [
+          "exit",
+          "unsafe"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "rescue",
+          "boat",
+          "evacuation"
+        ],
+        [
+          "medical",
+          "first aid"
+        ],
+        [
+          "shelter"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "exact number",
+          "residents"
+        ],
+        [
+          "flow speed",
+          "current"
+        ],
+        [
+          "exact address",
+          "location"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-01",
+    "title": "Rain with normal mobility",
+    "location": "Velachery",
+    "rationale": "Tests low severity despite ongoing rain.",
+    "input": {
+      "report": "Steady rain is reported in Velachery, but buses and cars are moving normally and no water has entered buildings.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 6,
+        "rainfall_24h_mm": 22,
+        "temperature_c": 28.5,
+        "humidity_percent": 83,
+        "wind_speed_kmph": 12,
+        "wind_direction_deg": 105,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "heavy_rainfall",
+      "severity": "low",
+      "evidence_term_groups": [
+        [
+          "steady rain"
+        ],
+        [
+          "moving normally"
+        ],
+        [
+          "no water has entered buildings"
+        ]
+      ],
+      "resource_term_groups": [],
+      "missing_information_term_groups": [
+        [
+          "future rainfall",
+          "forecast"
+        ],
+        [
+          "drain status"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-02",
+    "title": "Knee-deep street flooding",
+    "location": "Velachery",
+    "rationale": "Tests high flood severity from depth and mobility restriction.",
+    "input": {
+      "report": "Residents report knee-deep water on a Velachery street. Two-wheelers are turning back, but people can still leave houses on foot with care.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 43,
+        "rainfall_24h_mm": 129,
+        "temperature_c": 26.8,
+        "humidity_percent": 94,
+        "wind_speed_kmph": 24,
+        "wind_direction_deg": 150,
+        "water_level_m": 1.4,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "knee-deep"
+        ],
+        [
+          "two-wheelers are turning back"
+        ],
+        [
+          "leave houses on foot"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "traffic diversion",
+          "traffic"
+        ],
+        [
+          "pumping",
+          "drainage"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "number of affected homes"
+        ],
+        [
+          "water flow",
+          "current"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-03",
+    "title": "Elderly residents stranded near MRTS",
+    "location": "Velachery",
+    "rationale": "Tests the flagship Velachery scenario.",
+    "input": {
+      "report": "Water near Velachery MRTS is reported knee deep, traffic movement has stopped, and several elderly residents say they cannot leave their homes without assistance.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 42,
+        "rainfall_24h_mm": 128,
+        "temperature_c": 27.4,
+        "humidity_percent": 91,
+        "wind_speed_kmph": 31,
+        "wind_direction_deg": 140,
+        "water_level_m": 1.7,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "knee deep"
+        ],
+        [
+          "traffic movement has stopped"
+        ],
+        [
+          "elderly",
+          "cannot leave"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "rescue",
+          "evacuation"
+        ],
+        [
+          "medical",
+          "first aid"
+        ],
+        [
+          "traffic"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "exact number",
+          "elderly residents"
+        ],
+        [
+          "water depth measurement",
+          "measured depth"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-04",
+    "title": "Clinic access blocked",
+    "location": "Velachery",
+    "rationale": "Tests high access impact without falsely declaring a current medical emergency.",
+    "input": {
+      "report": "Flooding in Velachery has blocked the only vehicle access road to a small clinic. Staff report that patients inside are stable, but one person may need transfer if their condition worsens.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 49,
+        "rainfall_24h_mm": 151,
+        "temperature_c": 26,
+        "humidity_percent": 96,
+        "wind_speed_kmph": 27,
+        "wind_direction_deg": 155,
+        "water_level_m": 1.9,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "high",
+      "evidence_term_groups": [
+        [
+          "blocked the only vehicle access"
+        ],
+        [
+          "clinic"
+        ],
+        [
+          "patients inside are stable"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "alternate transport",
+          "rescue transport"
+        ],
+        [
+          "medical"
+        ],
+        [
+          "traffic access",
+          "route"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "patient condition"
+        ],
+        [
+          "alternate route"
+        ],
+        [
+          "water depth"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-05",
+    "title": "Person unresponsive in flooded home",
+    "location": "Velachery",
+    "rationale": "Tests immediate life-safety prioritization within a flood context.",
+    "input": {
+      "report": "A caller in Velachery reports an unresponsive person inside a flooded ground-floor home. Water outside is waist deep and the caller says normal vehicle access is impossible.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 58,
+        "rainfall_24h_mm": 181,
+        "temperature_c": 25.8,
+        "humidity_percent": 97,
+        "wind_speed_kmph": 29,
+        "wind_direction_deg": 160,
+        "water_level_m": 2,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "medical_emergency",
+      "severity": "critical",
+      "evidence_term_groups": [
+        [
+          "unresponsive"
+        ],
+        [
+          "flooded ground-floor"
+        ],
+        [
+          "waist deep"
+        ],
+        [
+          "vehicle access is impossible"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "medical",
+          "ambulance"
+        ],
+        [
+          "rescue",
+          "boat",
+          "evacuation"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "vital signs",
+          "patient condition"
+        ],
+        [
+          "exact address",
+          "location"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-06",
+    "title": "Wind-blown signboard blocks lane",
+    "location": "Velachery",
+    "rationale": "Tests moderate infrastructure disruption rather than over-escalation.",
+    "input": {
+      "report": "A large roadside signboard has fallen across one lane in Velachery during strong winds. Traffic is passing through the remaining lane and no injuries are reported.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 8,
+        "rainfall_24h_mm": 29,
+        "temperature_c": 28,
+        "humidity_percent": 84,
+        "wind_speed_kmph": 52,
+        "wind_direction_deg": 175,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "infrastructure_damage",
+      "severity": "medium",
+      "evidence_term_groups": [
+        [
+          "signboard has fallen"
+        ],
+        [
+          "one lane"
+        ],
+        [
+          "traffic is passing"
+        ],
+        [
+          "no injuries"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "road clearance",
+          "debris"
+        ],
+        [
+          "traffic management",
+          "traffic"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "structural stability"
+        ],
+        [
+          "power line involvement",
+          "electrical"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-07",
+    "title": "Apartment electrical fire amid rain",
+    "location": "Velachery",
+    "rationale": "Tests critical fire response generation in an occupied building.",
+    "input": {
+      "report": "Residents report smoke and flames from an electrical room at the ground floor of an apartment building in Velachery. People on the ground floor are moving outside, and no casualties are confirmed.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 14,
+        "rainfall_24h_mm": 41,
+        "temperature_c": 27,
+        "humidity_percent": 89,
+        "wind_speed_kmph": 18,
+        "wind_direction_deg": 125,
+        "water_level_m": null,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "fire",
+      "severity": "critical",
+      "evidence_term_groups": [
+        [
+          "smoke",
+          "flames"
+        ],
+        [
+          "electrical room"
+        ],
+        [
+          "apartment building"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "fire service",
+          "fire response"
+        ],
+        [
+          "evacuation"
+        ],
+        [
+          "medical",
+          "first aid"
+        ],
+        [
+          "electrical",
+          "power isolation"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "fire spread"
+        ],
+        [
+          "number of residents"
+        ],
+        [
+          "casualties",
+          "injuries"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  },
+  {
+    "id": "VEL-08",
+    "title": "Severe flood with rooftop refuge",
+    "location": "Velachery",
+    "rationale": "Tests the highest flood severity with explicit unsafe egress.",
+    "input": {
+      "report": "Floodwater in a Velachery residential pocket is reported above ground-floor window level. Multiple residents have moved to a terrace and say they cannot descend safely because the stairwell exit is flooded.",
+      "location": "Velachery",
+      "timestamp": "2026-10-05T18:30:00+05:30",
+      "environment": {
+        "rainfall_1h_mm": 76,
+        "rainfall_24h_mm": 238,
+        "temperature_c": 25.2,
+        "humidity_percent": 98,
+        "wind_speed_kmph": 36,
+        "wind_direction_deg": 170,
+        "water_level_m": 2.6,
+        "observed_at": "2026-10-05T18:30:00+05:30",
+        "source_name": "Synthetic benchmark scenario",
+        "source_kind": "manual_development_input"
+      },
+      "source_label": "synthetic_controlled_benchmark"
+    },
+    "expected": {
+      "disaster_type": "urban_flooding",
+      "severity": "critical",
+      "evidence_term_groups": [
+        [
+          "above ground-floor window"
+        ],
+        [
+          "terrace"
+        ],
+        [
+          "cannot descend safely"
+        ],
+        [
+          "stairwell exit is flooded"
+        ]
+      ],
+      "resource_term_groups": [
+        [
+          "rescue",
+          "boat",
+          "evacuation"
+        ],
+        [
+          "medical",
+          "first aid"
+        ],
+        [
+          "shelter"
+        ]
+      ],
+      "missing_information_term_groups": [
+        [
+          "exact number",
+          "residents"
+        ],
+        [
+          "water current",
+          "flow speed"
+        ],
+        [
+          "exact building",
+          "address"
+        ]
+      ],
+      "forbidden_claim_terms": [
+        "confirmed deaths",
+        "official alert states",
+        "has been deployed",
+        "were evacuated successfully"
+      ]
+    }
+  }
+]
