@@ -8,6 +8,7 @@ from google import genai
 from google.genai import types
 
 from .base import LLMProvider
+from ..schemas import CrisisOutput
 
 class GeminiProvider(LLMProvider):
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
@@ -15,7 +16,7 @@ class GeminiProvider(LLMProvider):
         if not key:
             raise ValueError("GEMINI_API_KEY is required for the Gemini provider.")
         self.model = model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-        self.client = genai.Client(api_key=key)
+        self.client = genai.Client(api_key=key, http_options=types.HttpOptions(timeout=90000))
 
     def generate_json(self, *, system_prompt: str, user_prompt: str) -> dict[str, Any]:
         response = self.client.models.generate_content(
@@ -24,6 +25,7 @@ class GeminiProvider(LLMProvider):
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
                 response_mime_type="application/json",
+                response_schema=CrisisOutput,
                 temperature=0.2,
             ),
         )

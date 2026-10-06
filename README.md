@@ -4,6 +4,64 @@ CrisisLens AI is a **location-aware Generative AI pipeline** that converts unstr
 
 Initial pilot locations: **Tambaram, Chromepet, and Velachery**.
 
+## Run the custom React workspace (V0.4)
+
+The faculty demo now has a React + TypeScript frontend and a FastAPI backend.
+Use **Python 3.11+ and Node.js 22+**. From the repository root:
+
+```bash
+python -m venv .venv
+# Windows PowerShell:
+.venv\Scripts\Activate.ps1
+# macOS / Linux: source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Copy `.env.example` to `.env` and configure at least one provider key. The UI
+lets you choose Gemini or OpenAI; keys remain on the backend. A configured key
+is not proof of valid credentials or available quota. Restart the backend after
+changing `.env`.
+
+Build the frontend, then start the single-server demo:
+
+```bash
+cd frontend
+npm ci
+npm run build
+cd ..
+python -m uvicorn api:app --host 127.0.0.1 --port 8000
+```
+
+Open **http://127.0.0.1:8000**. API documentation: http://127.0.0.1:8000/docs.
+Build before starting the backend; the backend serves `frontend/dist` when it exists.
+
+For frontend development, run the backend as above, then in a second terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open http://127.0.0.1:5173. Vite proxies `/api` to the local backend.
+`npm run preview` alone does not connect to the backend; use the single-server
+demo or the development proxy.
+
+Workspace features:
+
+- editable synthetic scenarios for all three pilot localities,
+- sample, unknown, manual and live gridded-weather context with explicit provenance,
+- real provider generation through the existing validated pipeline,
+- severity evidence, situation report, resources, advisory actions and unknowns,
+- input snapshot, provider/model metadata, generation duration and JSON export,
+- clear errors for missing credentials, failed weather and invalid model responses.
+
+There is **no simulated AI output fallback**. Without a valid provider key,
+you can inspect inputs and the interface but cannot generate an assessment.
+This localhost demo has no authentication or persistence. Do not expose it
+publicly without access controls, request limits and a privacy review.
+
+Faculty demo walkthrough: `docs/FACULTY_DEMO.md`.
+
 ## Core pipeline
 
 Citizen / field report  
@@ -161,10 +219,19 @@ Benchmark output is saved as JSON and CSV in `benchmark_results/`.
 Tests do not require an API key.
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
-## Current milestone: V0.3
+Frontend checks (browser tests use explicit fixtures, not live API calls):
+
+```bash
+cd frontend
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+## Current milestone: V0.4
 
 Completed:
 
@@ -181,6 +248,10 @@ Completed:
 - transparent deterministic evaluation metrics
 - JSON + CSV benchmark reports
 - offline pipeline, weather and evaluation tests
+- custom responsive React assessment workspace
+- FastAPI health, scenario, weather and assessment endpoints
+- schema-constrained model generation and bounded provider request timeouts
+- frontend production build and API tests in CI
 
 Next:
 
@@ -188,4 +259,4 @@ Next:
 2. compare the actual scores and inspect failure cases,
 3. refine prompt/schema where failures are systematic,
 4. verify a stable Chennai Flood Monitor integration path,
-5. add UI only after the model pipeline is sufficiently reliable.
+5. strengthen factual-grounding checks and inspect model failure cases before wider use.

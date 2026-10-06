@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -95,17 +95,15 @@ class OpenMeteoWeatherClient:
                 current_dt = datetime.fromisoformat(current_time_raw)
                 hourly_dts = [datetime.fromisoformat(value) for value in times]
 
-                eligible = [
-                    (dt, value)
-                    for dt, value in zip(hourly_dts, precipitation)
-                    if dt <= current_dt and value is not None
-                ]
-
-                if eligible:
-                    rainfall_1h = float(eligible[-1][1])
-                    rainfall_24h = float(
-                        sum(float(value) for _, value in eligible[-24:])
-                    )
+                current_hour = current_dt.replace(minute=0, second=0, microsecond=0)
+                by_hour = dict(zip(hourly_dts, precipitation))
+                hour_value = by_hour.get(current_hour)
+                if hour_value is not None:
+                    rainfall_1h = float(hour_value)
+                # A partial series must not be labelled as a full 24-hour total.
+                window = [by_hour.get(current_hour - timedelta(hours=i)) for i in range(24)]
+                if all(value is not None for value in window):
+                    rainfall_24h = sum(float(value) for value in window)
             except (TypeError, ValueError):
                 rainfall_1h = None
                 rainfall_24h = None

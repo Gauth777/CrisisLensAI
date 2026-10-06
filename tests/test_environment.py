@@ -45,3 +45,15 @@ def test_open_meteo_parser_tolerates_missing_rainfall_series() -> None:
     assert result.rainfall_1h_mm is None
     assert result.rainfall_24h_mm is None
     assert result.temperature_c == 28.0
+
+
+def test_partial_or_gapped_series_does_not_claim_24h_total() -> None:
+    payload = {
+        "current": {"time": "2026-10-05T23:15"},
+        "hourly": {"time": ["2026-10-05T22:00", "2026-10-05T23:00"], "precipitation": [2.0, 3.0]},
+    }
+    result = OpenMeteoWeatherClient._parse(payload)
+    assert result.rainfall_1h_mm == 3.0
+    assert result.rainfall_24h_mm is None
+    payload["hourly"]["precipitation"][-1] = None
+    assert OpenMeteoWeatherClient._parse(payload).rainfall_1h_mm is None
