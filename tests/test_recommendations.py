@@ -152,3 +152,19 @@ def test_recommend_api_refuses_unknown_citations(monkeypatch):
         result = client.post("/api/recommend", json={"location": "Velachery", "question": "Is this real?"})
         assert result.status_code == 502
         assert "recommendation" not in result.json()
+
+
+@pytest.mark.parametrize("kind,scope,category,expected", [
+    ("official_alert", "official_warning", "warning", "supported"),
+    ("official_alert", "official_warning", "incident", "insufficient_evidence"),
+    ("official_alert", "official_warning", "needs", "insufficient_evidence"),
+    ("field_report", "unverified_input", "incident", "insufficient_evidence"),
+    ("field_report", "reviewed_report", "incident", "supported"),
+])
+def test_operational_evidence_cannot_promote_warning_or_unreviewed_report_to_incident(kind, scope, category, expected):
+    evidence = bundle()
+    evidence["sources"].append({"id": "O1", "kind": kind, "scope": "district" if kind == "official_alert" else "locality", "content_scope": scope})
+    response = output()
+    response["claims"][0].update(category=category, source_ids=["O1"])
+    result = recommend(Provider(response), RecommendationQuestion(location="Velachery", question="What is supported?"), evidence)
+    assert result.claims[0].status == expected

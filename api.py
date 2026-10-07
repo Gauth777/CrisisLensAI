@@ -5,11 +5,14 @@ import json
 import logging
 import os
 import time
+import secrets
+import threading
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, ValidationError
@@ -18,6 +21,7 @@ from crisislens.config import build_provider, load_environment
 from crisislens.data import OpenMeteoWeatherClient
 from crisislens.data.environment import EnvironmentalDataError
 from crisislens.data.context import collect_context
+from crisislens.data.operations import Operations, FieldReport, Review, operational_sources
 from crisislens.recommendations import RecommendationQuestion, recommend
 from crisislens.pipeline import CrisisLensPipeline
 from crisislens.provider_failures import classify_provider_failure
@@ -29,12 +33,44 @@ ROOT = Path(__file__).resolve().parent
 logger = logging.getLogger(__name__)
 load_environment()
 ProviderName = Literal["gemini", "openai", "groq"]
-app = FastAPI(title="CrisisLens AI", version="0.4.0")
+_operations = None
+_operations_lock = threading.Lock()
+
+
+def operations():
+    global _operations
+    with _operations_lock:
+        if _operations is None:
+            _operations = Operations(os.getenv("CRISISLENS_DB_PATH", str(ROOT / "runtime/operations.sqlite3")))
+        return _operations
+
+
+@asynccontextmanager
+async def lifespan(app):
+    stop = threading.Event()
+    def poll():
+        while not stop.is_set():
+            try:
+                operations().poll()
+            except Exception:
+                logger.exception("Official-alert intake failed")
+            stop.wait(120)
+    worker = None
+    if os.getenv("CRISISLENS_ALERT_POLLING", "1") != "0":
+        worker = threading.Thread(target=poll, name="sachet-intake", daemon=True)
+        worker.start()
+    yield
+    stop.set()
+    if worker:
+        worker.join(timeout=1)
+
+
+app = FastAPI(title="CrisisLens AI", version="0.5.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Review-Token"],
 )
 
 
@@ -61,7 +97,7 @@ class AnalysisResponse(BaseModel):
 def health():
     return {
         "status": "ok",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "default_provider": os.getenv("CRISISLENS_PROVIDER", "gemini").strip().lower(),
         "providers": {
             "gemini": {"configured": bool((os.getenv("GEMINI_API_KEY") or "").strip()), "model": (os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL},
@@ -121,6 +157,31 @@ def context(location: PilotLocation, refresh: bool = False):
     return collect_context(location, refresh=refresh)
 
 
+@app.get("/api/operations/{location}")
+def operational_context(location: PilotLocation):
+    return operations().snapshot(location)
+
+
+@app.post("/api/reports", status_code=201)
+def submit_report(report: FieldReport):
+    return operations().submit(report)
+
+
+@app.post("/api/reports/{identifier}/review")
+def review_report(identifier: str, review: Review, x_review_token: str = Header(default="")):
+    expected = os.getenv("CRISISLENS_REVIEW_TOKEN", "").strip()
+    if not expected:
+        raise HTTPException(503, "Coordinator review is disabled. Configure CRISISLENS_REVIEW_TOKEN on the server.")
+    if not secrets.compare_digest(x_review_token.encode(), expected.encode()):
+        raise HTTPException(403, "A valid coordinator review token is required.")
+    try:
+        return operations().review(identifier, review)
+    except KeyError:
+        raise HTTPException(404, "Field report not found.")
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
 class RecommendationRequest(RecommendationQuestion):
     provider: ProviderName = "groq"
 
@@ -132,6 +193,10 @@ def recommendations(request: RecommendationRequest):
         raise HTTPException(503, f"Configure {key_name} in backend .env and restart.")
     started = time.perf_counter()
     bundle = collect_context(request.location)
+    snapshot = operations().snapshot(request.location)
+    bundle["sources"].extend(operational_sources(snapshot))
+    bundle["source_status"].append({"name": "SACHET official alerts", "status": "stale_or_unavailable" if snapshot["feed"]["stale"] else "available"})
+    bundle["coverage_note"] += " " + snapshot["feed"]["coverage"]
     bundle["sources"].append({"id": "U1", "kind": "user", "title": "Your question or report",
         "publisher": "User supplied", "url": None, "published_at": None,
         "retrieved_at": datetime.now(timezone.utc).isoformat(), "excerpt": request.question,

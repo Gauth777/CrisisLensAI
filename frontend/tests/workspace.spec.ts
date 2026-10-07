@@ -10,6 +10,7 @@ const recommendation = { location: "Velachery", headline: "Verify needs before a
 async function boot(page: Page, configured = true, unavailable = false) {
   // Never make headless tests request public map tiles; use explicit transparent fixtures.
   await page.route("https://tile.openstreetmap.org/**", route => route.fulfill({ contentType: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=", "base64") }));
+  await page.route("**/api/operations/**", route => route.fulfill({ json: { location: decodeURIComponent(route.request().url().split("/").pop()!), retrieved_at: new Date().toISOString(), feed: { stale: false, last_success: new Date().toISOString(), coverage: "Test fixture coverage" }, alerts: [], reports: [], review_enabled: false } }));
   await page.route("**/api/health", route => route.fulfill({ json: { default_provider: "groq", providers: { groq: { configured, model: "openai/gpt-oss-120b" }, gemini: { configured: false, model: "test" }, openai: { configured: false, model: "test" } } } }));
   await page.route("**/api/context/**", route => route.fulfill({ json: unavailable ? { ...context, outlook: null, sources: [], source_status: [{ name: "The Indian Express", status: "unavailable" }] } : { ...context, location: route.request().url().includes("Tambaram") ? "Tambaram" : route.request().url().includes("Chromepet") ? "Chromepet" : "Velachery" } }));
   await page.route("**/api/recommend", route => {

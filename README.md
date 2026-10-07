@@ -115,17 +115,31 @@ Past trends opens a curated learning panel, available without an API key. Each p
 
 The Rain guide explains rainfall depth, duration and daily IMD categories, with illustrative 4 mm / 24 h versus 4 mm / 1 h examples. Categories are not evacuation thresholds. No universal rainfall amount establishes safety or a relief requirement. Source notes and maintenance instructions: [docs/HISTORICAL_CONTEXT.md](docs/HISTORICAL_CONTEXT.md).
 
+### Official alerts and field reports
+
+The **On the ground** panel works without a model key or generation request:
+
+- A background worker retrieves [NDMA SACHET RSS](https://sachet.ndma.gov.in/cap_public_website/rss/rss_india.xml) and its official CAP documents. It monitors IMD Chennai, Tamil Nadu issuer and CWC entries, waits 120 seconds between completed polls, caches immutable CAP records and displays their issuer, certainty, issue time, expiry and original link.
+- Matching is **district-level**: Chennai for Velachery; Chengalpattu for Tambaram/Chromepet. Even when CAP includes polygons, this first version does not claim a street-level/geofence match. A warning is not an observed flood or a confirmed assistance request. Test/exercise, expired, cancelled and superseded records do not become active warnings. Missing expiry remains unknown; future-effective warnings remain upcoming.
+- The browser checks the local snapshot every 20 seconds. Failed or incomplete intake, or a successful check older than five minutes, is labelled stale. No match is never an all-clear. Publication/observation time remains separate from retrieval time.
+- **Add field report** records a landmark, actual observation time (IST), description and reported requests. Reports start unreviewed. To enable the coordinator review form, set `CRISISLENS_REVIEW_TOKEN` to a private random value in backend `.env` and restart. Enter it in the coordinator form with the check method and evidence note. This is a shared local-demo credential, not production identity verification; the token is not stored in browser storage.
+- Reviews append an audit entry; conflicting edits require a reload. A human review is not independent certification. Observations older than six hours, rejected/resolved reports, and unreviewed reports are excluded from AI evidence. Reports remain visible for seven days, with stale labels.
+
+`GET /api/operations/{location}` serves snapshots without calling the model. `POST /api/reports` accepts reports; `POST /api/reports/{id}/review` requires `X-Review-Token`. The database defaults to ignored `runtime/operations.sqlite3`, with `CRISISLENS_DB_PATH` override. Keep it across restarts. No fixture reports are inserted automatically. Use `CRISISLENS_ALERT_POLLING=0` only when intentionally disabling upstream polling.
+
+This local prototype has persistent alerts/report history but no public-user authentication or submission rate limits. Before external deployment, add per-user roles, abuse prevention, retention/privacy rules and source monitoring. Reports submitted to another server are not automatically shared here. Direct rain-gauge, water-level, drainage, shelter and road-access integrations are still required; they are not replaced by a warning feed.
+
 ### Retrieval and evidence
 
 `GET /api/context/{location}` gathers Open-Meteo weather/forecast and bounded excerpts from the Indian Express and The Hindu Chennai RSS feeds. Reports are filtered to hazard-related mentions from the last seven days; city-wide reports are labelled context rather than locality confirmation. Retrieval is cached for five minutes. `?refresh=true` bypasses that cache.
 
-`POST /api/recommend` accepts `{ "location": "Velachery", "question": "What should our volunteers verify?", "provider": "groq", "demo": false }`. It retrieves source records on the server, marks the question as unverified user input and validates the model's schema, locality and citation IDs. A weather record or user report alone cannot support an operational incident claim. Unknown citation IDs are rejected. Hypothetical mode excludes live sources from generation.
+`POST /api/recommend` accepts `{ "location": "Velachery", "question": "What should our volunteers verify?", "provider": "groq", "demo": false }`. It combines retrieved context with current SACHET warnings and recent coordinator-reviewed field reports, marks the question as unverified user input and validates the model's schema, locality and citation IDs. A weather record, district warning or unreviewed user report alone cannot support an operational incident claim. Official warnings can support warning claims; reviewed local reports can support reported incident/needs/access claims. Unknown citation IDs are rejected. Hypothetical mode excludes live sources from generation.
 
-A source-linked claim is an interpretation for human review. Checking citation IDs does not validate semantic accuracy. Weather cannot prove flooding, affected-person counts, supply demand or safe roads. Missing news does not establish that a report is false. There are no official incident alerts or street-level observations connected yet.
+A source-linked claim is an interpretation for human review. Checking citation IDs does not validate semantic accuracy. Weather cannot prove flooding, affected-person counts, supply demand or safe roads. Missing news does not establish that a report is false. SACHET supplies official district warnings, while submitted field reports supply local observations subject to coordinator review. Neither is a guaranteed street-level incident detection service.
 
 Publisher coverage is limited and feeds may be unavailable. No full articles are scraped. The Indian Express RSS catalog specifies personal, non-commercial use; this academic prototype requires a licensing/access review before production NGO use: https://indianexpress.com/rss/. Weather documentation: https://open-meteo.com/en/docs.
 
-This localhost demo has no authentication, dispatch or persistent incident history. Deployment requires access controls, request limits and appropriate handling of submitted reports.
+This localhost demo has no automated dispatch. Coordinator review uses a shared token; deployment requires per-user access controls, request limits and appropriate handling of submitted reports.
 
 Faculty walkthrough and next stages: [docs/FACULTY_DEMO.md](docs/FACULTY_DEMO.md).
 
@@ -299,9 +313,13 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-## Current milestone: V0.4
+## Current milestone: V0.5
 
 Completed:
+
+- independent SACHET warning intake, expiry/update/cancellation handling and feed freshness
+- persistent field reports, protected coordinator review and audit history
+- responsive NGO recommendations, official evidence panel and interactive Chennai map
 
 - model-agnostic provider interface
 - Pydantic input/output contracts

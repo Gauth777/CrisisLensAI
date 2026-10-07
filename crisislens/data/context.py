@@ -35,9 +35,9 @@ class SameHostRedirect(HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def read_public(url: str, limit: int = 1_000_000) -> bytes:
+def read_public(url: str, limit: int = 1_000_000, timeout: int = 8) -> bytes:
     request = Request(url, headers={"User-Agent": "CrisisLensAI academic prototype/0.5", "Accept": "application/xml, application/json, text/xml"})
-    with build_opener(SameHostRedirect()).open(request, timeout=8) as response:
+    with build_opener(SameHostRedirect()).open(request, timeout=timeout) as response:
         raw = response.read(limit + 1)
     if len(raw) > limit:
         raise ValueError("Source response exceeded retrieval limit")
