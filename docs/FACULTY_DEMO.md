@@ -11,13 +11,14 @@
 ## Present the new NGO workflow
 
 1. **Choose an area.** Velachery, Tambaram and Chromepet are the current pilot. Explain that the hero map is an illustration, not a live incident map.
-2. **Inspect local context.** Show modelled temperature, wind and the next forecast rain window. Forecast rainfall covers the hour preceding its timestamp. Missing forecast values stay unknown. Open the weather source to see its values, time and original API URL.
-3. **Inspect reports.** Recent matching publisher-feed reports include publication times and original links. Distinguish locality mentions from Chennai-wide context. An unavailable feed or no matching report does not prove that an incident is false.
-4. **Ask a useful question.** Click Plan supplies: “Our NGO has 50 food kits and 6 volunteers available for Velachery. What needs can be established, and what should we prepare before deciding where to help?” Click Get recommendations.
-5. **Explore the answer.** Open Why this recommendation, then Evidence. Sources shown belong to that specific recommendation. An uncited preparedness suggestion has no supporting source attached. The Unknowns tab lists checks needed before action.
-6. **Inspect claims and people.** Click a claim, an affected group or a suggested supply. User reports remain unverified; weather alone cannot establish flooding, stranded residents, supply demand or safe roads. “Not enough evidence” is a legitimate result, not a declaration that the report is false.
-7. **Save the briefing.** Download JSON containing the question, recommendation, source records and generation metadata. Editing the question clears the previous answer.
-8. **Optional synthetic demonstration.** Try a hypothetical scenario. Its answer excludes live weather and news and is labelled synthetic. The home context cards remain separate live context; do not present the hypothetical incident as current news.
+2. **Open Past trends.** Explore a locality-specific 2023 case and regional relief accounts, then switch to Rain guide. Compare 4 mm over 24 hours with 4 mm in one hour. IMD daily rainfall categories describe amounts, not deployment or evacuation thresholds. Explain that the history is manually curated, not a statistical trend database. Close the panel with Escape.
+3. **Inspect local context.** Show modelled temperature, wind and the next forecast rain window. Forecast rainfall covers the hour preceding its timestamp. Missing forecast values stay unknown. Open the weather source to see its values, time and original API URL.
+4. **Inspect reports.** Recent matching publisher-feed reports include publication times and original links. Distinguish locality mentions from Chennai-wide context. An unavailable feed or no matching report does not prove that an incident is false.
+5. **Ask a useful question.** Click Plan supplies: “Our NGO has 50 food kits and 6 volunteers available for Velachery. What needs can be established, and what should we prepare before deciding where to help?” Click Get recommendations.
+6. **Explore the answer.** Open Why this recommendation, then Evidence. Sources shown belong to that specific recommendation. An uncited preparedness suggestion has no supporting source attached. The Unknowns tab lists checks needed before action.
+7. **Inspect claims and people.** Click a claim, an affected group or a suggested supply. User reports remain unverified; weather alone cannot establish flooding, stranded residents, supply demand or safe roads. “Not enough evidence” is a legitimate result, not a declaration that the report is false.
+8. **Save the briefing.** Download JSON containing the question, recommendation, source records and generation metadata. Editing the question clears the previous answer.
+9. **Optional synthetic demonstration.** Try a hypothetical scenario. Its answer excludes live weather and news and is labelled synthetic. The home context cards remain separate live context; do not present the hypothetical incident as current news.
 
 ## Explain the architecture
 

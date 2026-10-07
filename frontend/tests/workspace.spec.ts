@@ -104,3 +104,41 @@ test("uncited suggestions do not borrow sources and hero evidence stays live in 
   await page.getByRole("button", { name: /Open-Meteo ·/ }).click();
   await expect(page.getByRole("dialog").getByRole("link", { name: "Open original source" })).toHaveAttribute("href", weatherSource.url);
 });
+
+test("past cases have original sources, area-specific gaps and a duration-aware rain guide", async ({ page }, testInfo) => {
+  await boot(page);
+  await page.getByRole("button", { name: "Past trends", exact: true }).click();
+  const panel = page.getByRole("dialog");
+  await expect(panel.getByRole("heading", { name: "When rain stopped, the water did not" })).toBeVisible();
+  await expect(panel.getByText(/not a statistical trend analysis/)).toBeVisible();
+  await panel.getByText("Sources & what this case cannot tell us", { exact: true }).first().click();
+  await expect(panel.getByRole("link", { name: /Velachery, it’s a trouble foretold/ })).toHaveAttribute("href", /newindianexpress.com/);
+  await panel.getByRole("button", { name: "Tambaram", exact: true }).click();
+  await expect(panel.getByRole("heading", { name: "Rescue needs can outlast the downpour" })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "When rain stopped, the water did not" })).toHaveCount(0);
+  await panel.getByRole("button", { name: "Rain guide", exact: true }).click();
+  await expect(panel.getByRole("heading", { name: "4 mm tomorrow is not an evacuation signal." })).toBeVisible();
+  await expect(panel.locator(".example-output strong")).toContainText("0.17");
+  await panel.getByRole("button", { name: "4 mm / 1 hour", exact: true }).click();
+  await expect(panel.locator(".example-output strong")).toContainText("4.00");
+  await expect(panel.getByRole("cell", { name: "64.5–115.5 mm", exact: true })).toBeVisible();
+  await expect(panel.getByRole("link", { name: /IMD category reference/ })).toHaveAttribute("href", /mausam.imd.gov.in/);
+  await page.screenshot({ path: testInfo.outputPath("rain-guide-desktop.png"), fullPage: false });
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Past trends", exact: true })).toBeFocused();
+});
+test("past trends is available on mobile without a provider key", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await boot(page, false, true);
+  await page.getByRole("button", { name: "Past trends", exact: true }).click();
+  const panel = page.getByRole("dialog");
+  await panel.getByRole("button", { name: "Chromepet", exact: true }).click();
+  await expect(panel.getByRole("heading", { name: "Road waterlogging affected movement" })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "An NGO’s account of rescue and essential supplies" })).toBeVisible();
+  const box = await panel.boundingBox();
+  expect(box!.width).toBeLessThanOrEqual(390);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: testInfo.outputPath("history-mobile.png"), fullPage: false });
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
+});

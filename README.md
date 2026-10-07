@@ -87,6 +87,7 @@ demo or the development proxy.
 Interface features:
 
 - question-first hero with locality selection and prompts for incidents, supplies and rain,
+- top Past trends panel with source-linked historical cases and an interactive rain guide,
 - modelled weather and a 24-hour rain outlook, with missing values kept unknown,
 - recent relevant publisher-feed reports, original links and source availability,
 - interactive Why / Evidence / Unknowns panels for claims and recommendations,
@@ -95,6 +96,12 @@ Interface features:
 - clearly separated hypothetical scenarios and safe provider errors.
 
 There is **no simulated AI output fallback**. A working provider is required to generate recommendations. Source retrieval failures remain visible rather than becoming fabricated evidence.
+
+### Past trends and rainfall literacy
+
+Past trends opens a curated learning panel, available without an API key. Each pilot has a December 2023 case, alongside regional 2015 flood and NGO-relief examples. Event dates, locality coverage, source links and missing evidence remain visible. This is qualitative historical context, not statistical trend analysis or an automatically updated incident archive. These records are not inserted into live recommendations.
+
+The Rain guide explains rainfall depth, duration and daily IMD categories, with illustrative 4 mm / 24 h versus 4 mm / 1 h examples. Categories are not evacuation thresholds. No universal rainfall amount establishes safety or a relief requirement. Source notes and maintenance instructions: [docs/HISTORICAL_CONTEXT.md](docs/HISTORICAL_CONTEXT.md).
 
 ### Retrieval and evidence
 
