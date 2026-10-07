@@ -10,7 +10,7 @@
 
 ## Present the new NGO workflow
 
-1. **Choose an area.** Velachery, Tambaram and Chromepet are the current pilot. Explain that the hero map is an illustration, not a live incident map.
+1. **Choose an area.** Velachery, Tambaram and Chromepet are the current pilot. Drag the Chennai map, zoom, and select a pilot marker. Live weather shows modelled conditions; Past flooding shows documented historical cases. Current incident risk remains unverified. These markers are representative points, not street-level incident coordinates.
 2. **Open Past trends.** Explore a locality-specific 2023 case and regional relief accounts, then switch to Rain guide. Compare 4 mm over 24 hours with 4 mm in one hour. IMD daily rainfall categories describe amounts, not deployment or evacuation thresholds. Explain that the history is manually curated, not a statistical trend database. Close the panel with Escape.
 3. **Inspect local context.** Show modelled temperature, wind and the next forecast rain window. Forecast rainfall covers the hour preceding its timestamp. Missing forecast values stay unknown. Open the weather source to see its values, time and original API URL.
 4. **Inspect reports.** Recent matching publisher-feed reports include publication times and original links. Distinguish locality mentions from Chennai-wide context. An unavailable feed or no matching report does not prove that an incident is false.

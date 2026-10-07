@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ArrowUpRight, Check, ChevronDown, CloudRain, Compass, Download, ExternalLink, FileText, HeartHandshake, HelpCircle, History, Layers3, LoaderCircle, MapPin, Package, RefreshCw, Search, ShieldCheck, Sparkles, Users, Wind, X } from "lucide-react";
 
 import LearningPanel from "./LearningPanel";
+import ChennaiMap from "./ChennaiMap";
 
 type Location = "Velachery" | "Tambaram" | "Chromepet";
 type Provider = "groq" | "gemini" | "openai";
@@ -106,7 +107,7 @@ export default function App() {
     </header>
     <main>
       <section className="hero"><div className="hero-copy"><div className="eyebrow"><HeartHandshake size={14}/> BUILT FOR PEOPLE WHO SHOW UP</div><h1>Know where your<br/><span>help is needed.</span></h1><p className="hero-description">Know what to do, why it matters, and what to check.</p><div className="hero-assurance"><ShieldCheck size={16}/> Source-linked answers. Human decisions.</div></div>
-        <div className="hero-art" aria-hidden="true"><div className="map-grid"/><svg viewBox="0 0 420 310"><path d="M-30 200Q80 105 180 165T450 70M30 350Q130 190 90-10M250-10Q180 110 280 150T360 350M-10 70Q100 90 170 40T440 170" fill="none" stroke="#cbded9" strokeWidth="20"/><path d="M-30 200Q80 105 180 165T450 70M30 350Q130 190 90-10M250-10Q180 110 280 150T360 350M-10 70Q100 90 170 40T440 170" fill="none" stroke="#f8fbf9" strokeWidth="14"/><circle cx="220" cy="155" r="68" fill="#c6e9dc" opacity=".6"/><circle cx="220" cy="155" r="40" fill="#a1d8c5" opacity=".6"/><circle cx="220" cy="155" r="8" fill="#26765f"/><circle cx="100" cy="210" r="6" fill="#e89676"/><circle cx="310" cy="70" r="6" fill="#e89676"/></svg><span className="map-caption">Illustration · Chennai pilot</span><div className="art-label"><MapPin size={14}/>{location}<span>Local context</span></div><div className="art-note"><ShieldCheck size={15}/><span>Look closer.<br/><strong>Understand the evidence.</strong></span></div></div>
+        <ChennaiMap area={location} selectedContext={context} disabled={busy} onAreaSelect={area => { if (!busy && area !== location) { reset(); setLocation(area); setQuestion(""); setDemo(false); } }} onHistory={() => { setPanel(null); setLearning(true); }}/>
       </section>
       <section className="question-section" aria-label="Ask CrisisLens"><form className="question-card" onSubmit={generate}>
         <div className="question-top"><span><Sparkles size={16}/> What would you like to know?</span><label className="location-picker"><MapPin size={15}/><select aria-label="Area" value={location} disabled={busy} onChange={e => { reset(); setLocation(e.target.value as Location); setQuestion(""); setDemo(false); }} >{locations.map(l => <option key={l}>{l}</option>)}</select><ChevronDown size={13}/></label></div>

@@ -8,8 +8,10 @@ const newsSource = { id: "N1", kind: "news", title: "Fixture report: Chennai rai
 const context = { location: "Velachery", retrieved_at: "2026-10-06T19:45:00Z", outlook: { environment: { temperature_c: 28, wind_speed_kmph: 10, observed_at: weatherSource.published_at }, next_rain: { time: "2026-10-07T08:00:00+05:30", precipitation_mm: 0.3, probability_percent: 30 }, forecast_complete: true, hours: Array.from({ length: 24 }, (_, i) => ({ time: `2026-10-07T${String(i).padStart(2, "0")}:00:00+05:30`, precipitation_mm: i === 8 ? 0.3 : 0, probability_percent: 30 })) }, sources: [weatherSource, newsSource], source_status: [{ name: "Open-Meteo", status: "available" }, { name: "The Indian Express", status: "available" }, { name: "The Hindu", status: "unavailable" }], coverage_note: "Test fixture: limited publisher and weather coverage." };
 const recommendation = { location: "Velachery", headline: "Verify needs before allocating the food kits", answer: "The modelled forecast does not establish a local emergency. Confirm needs with a local coordinator before allocating your 50 kits.", claims: [{ statement: "Local flooding is reported", category: "incident", status: "insufficient_evidence", explanation: "No locality incident record was retrieved.", source_ids: ["U1"] }], recommendations: [{ title: "Check local conditions first", explanation: "The forecast alone cannot confirm the report.", source_ids: ["W1"] }], affected_groups: [{ title: "Reported elderly residents", explanation: "Mentioned by the user, not independently verified.", source_ids: ["U1"] }], supplies: [{ title: "Keep food kits ready", explanation: "Prepare the kits while verifying demand.", source_ids: [] }], missing_information: ["Current street access", "Number of people requesting supplies"] };
 async function boot(page: Page, configured = true, unavailable = false) {
+  // Never make headless tests request public map tiles; use explicit transparent fixtures.
+  await page.route("https://tile.openstreetmap.org/**", route => route.fulfill({ contentType: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=", "base64") }));
   await page.route("**/api/health", route => route.fulfill({ json: { default_provider: "groq", providers: { groq: { configured, model: "openai/gpt-oss-120b" }, gemini: { configured: false, model: "test" }, openai: { configured: false, model: "test" } } } }));
-  await page.route("**/api/context/**", route => route.fulfill({ json: unavailable ? { ...context, outlook: null, sources: [], source_status: [{ name: "The Indian Express", status: "unavailable" }] } : { ...context, location: route.request().url().includes("Tambaram") ? "Tambaram" : "Velachery" } }));
+  await page.route("**/api/context/**", route => route.fulfill({ json: unavailable ? { ...context, outlook: null, sources: [], source_status: [{ name: "The Indian Express", status: "unavailable" }] } : { ...context, location: route.request().url().includes("Tambaram") ? "Tambaram" : route.request().url().includes("Chromepet") ? "Chromepet" : "Velachery" } }));
   await page.route("**/api/recommend", route => {
     const question = route.request().postDataJSON();
     return route.fulfill({ json: { question, recommendation, context: { ...context, sources: question.demo ? [userSource] : [...context.sources, userSource] }, metadata: { model: "test", generated_at: "2026-10-06T19:45:01Z", latency_ms: 2100 } } });
@@ -149,4 +151,45 @@ test("past trends is available on mobile without a provider key", async ({ page 
   await page.screenshot({ path: testInfo.outputPath("history-mobile.png"), fullPage: false });
   await page.keyboard.press("Escape");
   await expect(panel).toHaveCount(0);
+});
+
+test("Chennai map supports pan, zoom, live context, historical layers and area selection", async ({ page }, testInfo) => {
+  await boot(page);
+  const map = page.getByRole("region", { name: "Interactive Chennai map", exact: true });
+  await expect(map.locator(".map-weather-values")).toContainText("0.3 mm");
+  await expect(map).toContainText("Current incident risk: unverified");
+  await expect(map.getByRole("link", { name: "OpenStreetMap", exact: true })).toBeVisible();
+  await expect(map.getByRole("link", { name: "Open weather source", exact: true })).toHaveAttribute("href", weatherSource.url);
+  await map.getByRole("button", { name: "Map area: Tambaram", exact: true }).click();
+  await expect(page.getByLabel("Area", { exact: true })).toHaveValue("Tambaram");
+  await expect(page.getByRole("heading", { name: "Closer to Tambaram." })).toBeVisible();
+  await map.getByRole("button", { name: "Past flooding", exact: true }).click();
+  await expect(map.getByText("Flooding documented · December 2023", { exact: true })).toBeVisible();
+  await expect(map.getByText("Rescue needs can outlast the downpour", { exact: true })).toBeVisible();
+  await map.getByRole("button", { name: "Past signals & original sources", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Rescue needs can outlast the downpour" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  const pane = map.locator(".leaflet-map-pane");
+  const before = await pane.getAttribute("style");
+  const surface = map.locator(".chennai-map-canvas"); const box = (await surface.boundingBox())!;
+  await page.mouse.move(box.x + box.width * 0.75, box.y + box.height * 0.4);
+  await page.mouse.down(); await page.mouse.move(box.x + box.width * 0.75 - 80, box.y + box.height * 0.4 + 50, { steps: 6 }); await page.mouse.up();
+  await expect(pane).not.toHaveAttribute("style", before!);
+  await map.getByRole("button", { name: "Recenter Chennai map", exact: true }).click();
+  await map.getByRole("button", { name: "Zoom in", exact: true }).click();
+  await map.getByRole("button", { name: "Live weather", exact: true }).click();
+  await page.screenshot({ path: testInfo.outputPath("chennai-map-desktop.png"), fullPage: false });
+});
+test("mobile map remains usable with missing weather and uncovered locations", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await boot(page, false, true);
+  const map = page.getByRole("region", { name: "Interactive Chennai map", exact: true });
+  await expect(map.locator(".map-weather-values")).toContainText("Unknown");
+  await expect(map).toContainText("Current incident risk: unverified");
+  await map.getByRole("button", { name: "Chromepet", exact: true }).click();
+  await expect(page.getByLabel("Area", { exact: true })).toHaveValue("Chromepet");
+  await map.locator(".chennai-map-canvas").click({ position: { x: 320, y: 220 } });
+  await expect(map.getByRole("status")).toContainText("No incident coverage at this point");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.screenshot({ path: testInfo.outputPath("chennai-map-mobile.png"), fullPage: true });
 });

@@ -87,6 +87,7 @@ demo or the development proxy.
 Interface features:
 
 - question-first hero with locality selection and prompts for incidents, supplies and rain,
+- draggable OpenStreetMap Chennai map with live weather and historical-flooding layers,
 - top Past trends panel with source-linked historical cases and an interactive rain guide,
 - modelled weather and a 24-hour rain outlook, with missing values kept unknown,
 - recent relevant publisher-feed reports, original links and source availability,
@@ -97,6 +98,16 @@ Interface features:
 - clearly separated hypothetical scenarios and safe provider errors.
 
 There is **no simulated AI output fallback**. A working provider is required to generate recommendations. Source retrieval failures remain visible rather than becoming fabricated evidence.
+
+### Interactive Chennai map
+
+The hero uses Leaflet 1.9.4 and OpenStreetMap tiles, with visible attribution. Drag to pan, use +/− to zoom, or select a pilot marker. Representative weather points are used, not exact incident locations or locality boundaries. Marker selection updates the question area and clears an old answer.
+
+Live weather displays modelled temperature and the next 24-hour rainfall total from `/api/context/{location}`. Totals are shown only for a complete 24-hour forecast with numeric values; missing data stays unknown. The map refreshes context every five minutes while the page is visible; manual refresh requests fresh retrieval. Observation timestamps and original weather links remain visible.
+
+Past flooding displays curated December 2023 cases, with a link to their historical sources. It is static historical context. Current incident risk is explicitly unverified: no flood probability, street-depth estimate, safe-route assessment or official alert layer is inferred from rainfall. Coverage is three representative pilot points, not every area visible on the map. Clicking elsewhere reports the coverage gap.
+
+Map tiles need internet access and follow [OSM tile policy](https://operations.osmfoundation.org/policies/tiles/). Browser tests intercept tile requests and use explicit fixtures; they test interaction and data handling, not live tile availability. There is no tile prefetch or offline-download feature. Optional `VITE_MAP_TILE_URL` and `VITE_MAP_ATTRIBUTION` build settings let deployment use a different properly licensed tile provider; these values are public frontend configuration. Production deployments should use a suitable tile service and its attribution terms.
 
 ### Past trends and rainfall literacy
 
