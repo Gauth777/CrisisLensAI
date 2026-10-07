@@ -29,9 +29,13 @@ test("hero asks a question, presents forecast and keeps provider details seconda
   await expect(page.getByText("30% precipitation probability", { exact: false })).toBeVisible();
   await expect(page.getByText("Generation settings")).toHaveCount(0);
 });
-test("recommendation opens exact evidence and exports the source bundle", async ({ page }) => {
+test("recommendation opens exact evidence and exports the source bundle", async ({ page }, testInfo) => {
   await boot(page);
   await generate(page);
+  await expect(page.getByRole("heading", { name: "Your action list", exact: true })).toBeVisible();
+  await expect(page.locator(".step-card").first()).toContainText("DO");
+  await expect(page.locator(".step-card").first()).toContainText("WHY");
+  await page.screenshot({ path: testInfo.outputPath("action-first-desktop.png"), fullPage: true });
   await page.getByRole("button", { name: "Why this recommendation?", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("tab", { name: "Evidence", exact: true }).click();
@@ -48,6 +52,7 @@ test("recommendation opens exact evidence and exports the source bundle", async 
 });
 test("claim explains unverified input and exposes missing information", async ({ page }) => {
   await boot(page); await generate(page);
+  await page.getByText("Check claims & evidence", { exact: false }).click();
   await page.getByRole("button", { name: /Not enough evidence Local flooding is reported/ }).click();
   await expect(page.getByRole("dialog")).toContainText("No locality incident record was retrieved.");
   await page.getByRole("tab", { name: "Evidence", exact: true }).click();
@@ -70,9 +75,10 @@ test("unavailable sources and absent keys do not fabricate recommendations", asy
   await expect(page.getByText("Weather unavailable", { exact: true })).toBeVisible();
   await expect(page.getByText("No recent matching report retrieved", { exact: true })).toBeVisible();
 });
-test("mobile evidence sheet fits viewport and supports keyboard closing", async ({ page }) => {
+test("mobile evidence sheet fits viewport and supports keyboard closing", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await boot(page); await generate(page);
+  await page.screenshot({ path: testInfo.outputPath("action-first-mobile.png"), fullPage: true });
   await page.getByRole("button", { name: "Why this recommendation?", exact: true }).click();
   await page.getByRole("tab", { name: "Evidence", exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -110,7 +116,7 @@ test("past cases have original sources, area-specific gaps and a duration-aware 
   await page.getByRole("button", { name: "Past trends", exact: true }).click();
   const panel = page.getByRole("dialog");
   await expect(panel.getByRole("heading", { name: "When rain stopped, the water did not" })).toBeVisible();
-  await expect(panel.getByText(/not a statistical trend analysis/)).toBeVisible();
+  await expect(panel.getByText(/not current alerts or statistical trends/)).toBeVisible();
   await panel.getByText("Sources & what this case cannot tell us", { exact: true }).first().click();
   await expect(panel.getByRole("link", { name: /Velachery, it’s a trouble foretold/ })).toHaveAttribute("href", /newindianexpress.com/);
   await panel.getByRole("button", { name: "Tambaram", exact: true }).click();
@@ -121,6 +127,7 @@ test("past cases have original sources, area-specific gaps and a duration-aware 
   await expect(panel.locator(".example-output strong")).toContainText("0.17");
   await panel.getByRole("button", { name: "4 mm / 1 hour", exact: true }).click();
   await expect(panel.locator(".example-output strong")).toContainText("4.00");
+  await panel.getByText("IMD categories · 24-hour totals", { exact: true }).click();
   await expect(panel.getByRole("cell", { name: "64.5–115.5 mm", exact: true })).toBeVisible();
   await expect(panel.getByRole("link", { name: /IMD category reference/ })).toHaveAttribute("href", /mausam.imd.gov.in/);
   await page.screenshot({ path: testInfo.outputPath("rain-guide-desktop.png"), fullPage: false });
@@ -134,6 +141,7 @@ test("past trends is available on mobile without a provider key", async ({ page 
   const panel = page.getByRole("dialog");
   await panel.getByRole("button", { name: "Chromepet", exact: true }).click();
   await expect(panel.getByRole("heading", { name: "Road waterlogging affected movement" })).toBeVisible();
+  await panel.getByText("More examples · NGO & regional relief", { exact: true }).click();
   await expect(panel.getByRole("heading", { name: "An NGO’s account of rescue and essential supplies" })).toBeVisible();
   const box = await panel.boundingBox();
   expect(box!.width).toBeLessThanOrEqual(390);

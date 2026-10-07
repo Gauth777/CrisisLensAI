@@ -91,6 +91,7 @@ Interface features:
 - modelled weather and a 24-hour rain outlook, with missing values kept unknown,
 - recent relevant publisher-feed reports, original links and source availability,
 - interactive Why / Evidence / Unknowns panels for claims and recommendations,
+- action-first results: short DO / WHY cards, with claims and longer context available on demand,
 - affected groups and suggested supplies linked to the specific input records,
 - mobile evidence sheet, keyboard-accessible panels and JSON briefing export,
 - clearly separated hypothetical scenarios and safe provider errors.
