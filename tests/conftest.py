@@ -7,4 +7,5 @@ def isolated_operations(tmp_path, monkeypatch):
     import api
     monkeypatch.setenv("CRISISLENS_ALERT_POLLING", "0")
     monkeypatch.setenv("CRISISLENS_DB_PATH", str(tmp_path / "operations.sqlite3"))
+    monkeypatch.setenv("CRISISLENS_SIM_DB_DIR", str(tmp_path / "simulations"))
     monkeypatch.setattr(api, "_operations", None)

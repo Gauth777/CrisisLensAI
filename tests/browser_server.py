@@ -30,6 +30,7 @@ if __name__ == "__main__":
     api.collect_context=context
     api.build_provider=lambda name:Provider()
     with tempfile.TemporaryDirectory(prefix="crisislens-browser-test-") as directory:
+        os.environ["CRISISLENS_SIM_DB_DIR"]=str(Path(directory)/"simulations")
         api._operations=Workflow(Path(directory)/"test.sqlite3")
         now=utcnow(); url="https://sachet.ndma.gov.in/cap_public_website/FetchXMLFile?identifier=100"
         cap=f'''<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2"><identifier>TEST-cap</identifier><sender>TEST IMD Chennai</sender><sent>{now.isoformat()}</sent><status>Actual</status><scope>Public</scope><msgType>Alert</msgType><info><language>en-IN</language><event>TEST district rain warning</event><headline>TEST ONLY: illustrative warning, not real weather.</headline><certainty>Possible</certainty><severity>Moderate</severity><expires>{(now+timedelta(hours=2)).isoformat()}</expires><area><areaDesc>Chennai district</areaDesc></area></info></alert>'''.encode()

@@ -25,6 +25,7 @@ from crisislens.data.operations import operational_sources
 from crisislens.workflow import Workflow as Operations, ReportInput, UpdateReview, ReportUpdate, PlanInput, PlanChange, Resource
 from crisislens.recommendations import RecommendationQuestion, recommend
 from crisislens.pipeline import CrisisLensPipeline
+from crisislens.simulation import router as simulation_router
 from crisislens.provider_failures import classify_provider_failure
 from crisislens.providers.gemini import DEFAULT_GEMINI_MODEL
 from crisislens.providers.groq_provider import DEFAULT_GROQ_MODEL
@@ -66,7 +67,8 @@ async def lifespan(app):
         worker.join(timeout=1)
 
 
-app = FastAPI(title="CrisisLens AI", version="0.6.0", lifespan=lifespan)
+app = FastAPI(title="CrisisLens AI", version="0.7.0", lifespan=lifespan)
+app.include_router(simulation_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -98,7 +100,7 @@ class AnalysisResponse(BaseModel):
 def health():
     return {
         "status": "ok",
-        "version": "0.6.0",
+        "version": "0.7.0",
         "default_provider": os.getenv("CRISISLENS_PROVIDER", "gemini").strip().lower(),
         "providers": {
             "gemini": {"configured": bool((os.getenv("GEMINI_API_KEY") or "").strip()), "model": (os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL},

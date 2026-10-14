@@ -1,16 +1,18 @@
 # CrisisLens AI
 
-## Current interface: NGO response workflow (V0.6)
+## Current interface: NGO response workflow + Field Lab (V0.7)
 
 **Choose an area and resources → inspect local needs → check evidence → save a response draft → coordinator approval → update the outcome.**
 
 The interface now has persistent My plans, source-linked AI proposals, downloadable briefings, protected approval, and reviewed field updates. No fictional incidents or filler cards are inserted in normal operation. Live sources are SACHET CAP warnings, Open-Meteo weather and bounded publisher RSS context; local assistance requests must come from actual reports submitted to this server.
 
+**Try the demo:** select **Try a simulation** for four fictional, interactive Chennai scenarios. Advance events, inspect evidence, save practice plans and watch source changes affect approval. No API key is needed; simulation records are isolated from live data. [Field Lab walkthrough](docs/SIMULATION.md).
+
 **Start here: [setup and complete user workflow](docs/NGO_WORKFLOW.md).** Install backend requirements after pulling (including Windows `tzdata`), rebuild the frontend and restart FastAPI.
 
 A failed CAP document now marks coverage **partial**, with its URL and error type; successfully retrieved documents remain visible. An RSS outage/stale index remains **stale**. Partial warning coverage cannot establish that an update or cancellation is absent.
 
-The historical implementation notes below describe earlier milestones; the V0.6 workflow guide above is authoritative for the current UI.
+The historical implementation notes below describe earlier milestones; the current workflow and Field Lab guides above are authoritative for the UI.
 
 
 CrisisLens AI is a **source-linked recommendation system for NGOs**. Ask about a locality, available resources or a reported incident, then inspect the recommendations, supporting records and missing information before deciding how to help.

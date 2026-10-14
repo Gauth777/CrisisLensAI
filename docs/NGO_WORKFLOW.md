@@ -20,6 +20,10 @@ Open http://127.0.0.1:8000. Keep your existing provider configuration in backend
 
 To enable coordinator review and approval, set `CRISISLENS_REVIEW_TOKEN` to a private random value in backend `.env` and restart. Enter this token only in the review/approval form. This shared credential is for a trusted local workspace; there are no individually authenticated NGO accounts.
 
+## Try a simulation
+
+Open **Try a simulation** in the header for the [Field Lab](SIMULATION.md). Four fictional stories use separate databases and the same plan checks. The live workflow below is unchanged.
+
 ## 1. Find needs
 
 Choose Velachery, Tambaram or Chromepet. Enter actual resources and volunteer availability. Quantities have explicit units: food kits, water litres, medical kits, shelter places and other supply items. Leave unknown quantities blank. **Find relevant needs** scrolls to local reports and filters by the supplied resource types.

@@ -1,10 +1,12 @@
 # CrisisLens faculty demonstration
 
-Follow [the current NGO workflow](NGO_WORKFLOW.md) for setup and all controls.
+For a reliable fictional walkthrough, start with **Try a simulation** and follow [the five-minute Field Lab demonstration](SIMULATION.md). It uses isolated training records and needs no AI key. Do not submit made-up demonstrations into the live report database.
+
+For the separate live-source demonstration, follow [the current NGO workflow](NGO_WORKFLOW.md):
 
 1. Open the home page. Choose an area and actual available resources. Explain that the map marks locality centres, not individual incidents or flood probabilities.
 2. Show the live weather source time and source-health panel. Open an actual retrieved CAP warning if available. If none matches, say so; do not present a historical warning as current.
-3. Open an actual local report and inspect its observation, time, needs and review trail. If no genuine report exists, explain that this source requires reporting participants. Demonstrate a fictional submission only when clearly announced and labelled DEMO ONLY; do not corroborate fictional data as real evidence.
+3. Open an actual local report and inspect its observation, time, needs and review trail. If no genuine report exists, explain that this source requires reporting participants. Use Field Lab for fictional examples; do not corroborate fictional data as real evidence.
 4. Prepare a plan from an eligible real report, or use a preparedness draft. Show resources, concise generated steps and exact supporting records. If generation is unavailable, save a manual draft.
 5. Open My plans, reload the page and reopen the persisted draft. Show the checks needed for approval and that approval requires the coordinator token and a current reviewed request. Preparedness drafts cannot be approved as incident responses.
 6. Download the briefing. Explain that the server stores the exact evidence bundle; exporting or approving a plan does not dispatch anyone.
