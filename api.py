@@ -15,13 +15,14 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from crisislens.config import build_provider, load_environment
 from crisislens.data import OpenMeteoWeatherClient
 from crisislens.data.environment import EnvironmentalDataError
 from crisislens.data.context import collect_context
-from crisislens.data.operations import Operations, FieldReport, Review, operational_sources
+from crisislens.data.operations import operational_sources
+from crisislens.workflow import Workflow as Operations, ReportInput, UpdateReview, ReportUpdate, PlanInput, PlanChange, Resource
 from crisislens.recommendations import RecommendationQuestion, recommend
 from crisislens.pipeline import CrisisLensPipeline
 from crisislens.provider_failures import classify_provider_failure
@@ -65,7 +66,7 @@ async def lifespan(app):
         worker.join(timeout=1)
 
 
-app = FastAPI(title="CrisisLens AI", version="0.5.0", lifespan=lifespan)
+app = FastAPI(title="CrisisLens AI", version="0.6.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -97,7 +98,7 @@ class AnalysisResponse(BaseModel):
 def health():
     return {
         "status": "ok",
-        "version": "0.5.0",
+        "version": "0.6.0",
         "default_provider": os.getenv("CRISISLENS_PROVIDER", "gemini").strip().lower(),
         "providers": {
             "gemini": {"configured": bool((os.getenv("GEMINI_API_KEY") or "").strip()), "model": (os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL},
@@ -163,17 +164,21 @@ def operational_context(location: PilotLocation):
 
 
 @app.post("/api/reports", status_code=201)
-def submit_report(report: FieldReport):
+def submit_report(report: ReportInput):
     return operations().submit(report)
 
 
-@app.post("/api/reports/{identifier}/review")
-def review_report(identifier: str, review: Review, x_review_token: str = Header(default="")):
+def authorize_coordinator(x_review_token):
     expected = os.getenv("CRISISLENS_REVIEW_TOKEN", "").strip()
     if not expected:
         raise HTTPException(503, "Coordinator review is disabled. Configure CRISISLENS_REVIEW_TOKEN on the server.")
     if not secrets.compare_digest(x_review_token.encode(), expected.encode()):
         raise HTTPException(403, "A valid coordinator review token is required.")
+
+
+@app.post("/api/reports/{identifier}/review")
+def review_report(identifier: str, review: UpdateReview, x_review_token: str = Header(default="")):
+    authorize_coordinator(x_review_token)
     try:
         return operations().review(identifier, review)
     except KeyError:
@@ -182,8 +187,48 @@ def review_report(identifier: str, review: Review, x_review_token: str = Header(
         raise HTTPException(409, str(exc))
 
 
+@app.post("/api/reports/{identifier}/updates", status_code=201)
+def report_update(identifier: str, update: ReportUpdate):
+    try:
+        return operations().add_update(identifier, update)
+    except KeyError:
+        raise HTTPException(404, "Report not found.")
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
+@app.get("/api/plans")
+def list_plans():
+    return operations().plans()
+
+
+@app.post("/api/plans", status_code=201)
+def save_plan(plan: PlanInput):
+    try:
+        return operations().create_plan(plan)
+    except KeyError:
+        raise HTTPException(404, "Report or briefing not found.")
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
+@app.post("/api/plans/{identifier}")
+def change_plan(identifier: str, change: PlanChange, x_review_token: str = Header(default="")):
+    if change.action in ("approve", "close"):
+        authorize_coordinator(x_review_token)
+    try:
+        return operations().change_plan(identifier, change)
+    except KeyError:
+        raise HTTPException(404, "Plan not found.")
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
 class RecommendationRequest(RecommendationQuestion):
     provider: ProviderName = "groq"
+    report_id: str | None = None
+    resources: list[Resource] = Field(default_factory=list, max_length=5)
+    volunteers: int = Field(default=0, ge=0, le=10000)
 
 
 @app.post("/api/recommend")
@@ -194,7 +239,12 @@ def recommendations(request: RecommendationRequest):
     started = time.perf_counter()
     bundle = collect_context(request.location)
     snapshot = operations().snapshot(request.location)
-    bundle["sources"].extend(operational_sources(snapshot))
+    if request.report_id and not any(r["id"] == request.report_id for r in snapshot["reports"]):
+        raise HTTPException(404, "This report is no longer in the current seven-day area snapshot.")
+    operational = operational_sources(snapshot)
+    if request.report_id:
+        operational = [s for s in operational if s["kind"] != "field_report" or s["id"] == "F" + request.report_id]
+    bundle["sources"].extend(operational)
     bundle["source_status"].append({"name": "SACHET official alerts", "status": "stale_or_unavailable" if snapshot["feed"]["stale"] else "available"})
     bundle["coverage_note"] += " " + snapshot["feed"]["coverage"]
     bundle["sources"].append({"id": "U1", "kind": "user", "title": "Your question or report",
@@ -217,10 +267,13 @@ def recommendations(request: RecommendationRequest):
         failure = classify_provider_failure(exc, request.provider)
         logger.warning("CrisisLens recommendation failure: provider=%s category=%s provider_code=%s", request.provider, failure.category, failure.provider_code)
         raise HTTPException(failure.http_status, failure.detail) from exc
-    return {"question": request.model_dump(), "recommendation": answer.model_dump(), "context": bundle,
+    response = {"question": request.model_dump(), "recommendation": answer.model_dump(), "context": bundle,
             "metadata": {"provider": request.provider, "model": provider.model,
                          "generated_at": datetime.now(timezone.utc).isoformat(),
                          "latency_ms": round((time.perf_counter() - started) * 1000, 2)}}
+    response["report_revision"] = next((r["revision"] for r in snapshot["reports"] if r["id"] == request.report_id), None)
+    response["briefing_id"] = operations().save_briefing(response)
+    return response
 
 
 # Build the frontend before starting this server to use a single localhost URL.

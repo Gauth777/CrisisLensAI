@@ -20,9 +20,8 @@ export default defineConfig({
         }
       : {},
   },
-  webServer: {
-    command: "npm run dev",
-    url: "http://127.0.0.1:5173",
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {command: "python ../tests/browser_server.py", url: "http://127.0.0.1:8011/api/health", reuseExistingServer: false},
+    {command: "npm run dev", url: "http://127.0.0.1:5173", reuseExistingServer: false, env: {CRISISLENS_TEST_API_ORIGIN: "http://127.0.0.1:8011"}},
+  ],
 });

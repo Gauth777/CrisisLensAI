@@ -35,7 +35,7 @@ class SameHostRedirect(HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def read_public(url: str, limit: int = 1_000_000, timeout: int = 8) -> bytes:
+def read_public(url: str, limit: int = 1_000_000, timeout: int = 20) -> bytes:
     request = Request(url, headers={"User-Agent": "CrisisLensAI academic prototype/0.5", "Accept": "application/xml, application/json, text/xml"})
     with build_opener(SameHostRedirect()).open(request, timeout=timeout) as response:
         raw = response.read(limit + 1)
@@ -159,12 +159,12 @@ def fetch_outlook(location: PilotLocation, now: datetime) -> tuple[dict, dict]:
 
 
 _cache: dict[str, tuple[float, dict]] = {}
-_lock = threading.Lock()
+_location_locks = {location: threading.Lock() for location in PILOT_COORDINATES}
 
 
 def collect_context(location: PilotLocation, refresh: bool = False) -> dict:
     # Three pilot locations bound the cache; no user URLs or search strings.
-    with _lock:
+    with _location_locks[location]:
         cached = _cache.get(location)
         if not refresh and cached and time.monotonic() - cached[0] < 300:
             return json.loads(json.dumps(cached[1]))
@@ -178,15 +178,15 @@ def collect_context(location: PilotLocation, refresh: bool = False) -> dict:
                 outlook, source = weather_job.result()
                 sources.append(source)
                 statuses.append({"name": "Open-Meteo", "status": "available"})
-            except Exception:
-                statuses.append({"name": "Open-Meteo", "status": "unavailable"})
+            except Exception as exc:
+                statuses.append({"name": "Open-Meteo", "status": "unavailable", "error_type": type(exc).__name__})
             for publisher, domain, job in jobs:
                 try:
                     articles = parse_feed(job.result(), publisher, domain, location, now)
                     sources.extend(articles)
                     statuses.append({"name": publisher, "status": "available" if articles else "no_recent_match"})
-                except Exception:
-                    statuses.append({"name": publisher, "status": "unavailable"})
+                except Exception as exc:
+                    statuses.append({"name": publisher, "status": "unavailable", "error_type": type(exc).__name__})
         unique = {s["id"]: s for s in sources}
         result = {"location": location, "retrieved_at": now.isoformat(), "outlook": outlook,
                   "sources": list(unique.values()), "source_status": statuses,

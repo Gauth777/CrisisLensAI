@@ -165,35 +165,51 @@ class Operations:
                 row = db.execute("SELECT data FROM state WHERE key='feed'").fetchone()
                 health = json.loads(row[0]) if row else {}
                 known = {row[0] for row in db.execute("SELECT url FROM alerts")}
-            health.update(last_attempt=now.isoformat(), error=None)
+            health.update(last_attempt=now.isoformat(), error=None, checking=True)
+            with self.lock, self.connect() as db:
+                db.execute("INSERT OR REPLACE INTO state VALUES ('feed', ?)", (json.dumps(health),))
             try:
                 urls = feed_urls(fetch(RSS))
+                health["last_feed_success"] = utcnow().isoformat()
+                health["feed_error"] = None
                 if len(urls) > 200:
                     raise ValueError("Official feed exceeds configured intake bound")
                 pending = [url for url in urls if url not in known]
                 def retrieve(url):
                     try:
-                        return parse_cap(fetch(url), url, utcnow())
-                    except Exception:
-                        return None
+                        return url, parse_cap(fetch(url), url, utcnow()), None
+                    except Exception as exc:
+                        return url, None, type(exc).__name__
                 failed = 0
+                failures = []
                 with ThreadPoolExecutor(max_workers=4) as pool:
                     futures = [pool.submit(retrieve, url) for url in pending]
                     for future in as_completed(futures):
-                        record = future.result()
+                        url, record, reason = future.result()
                         if record:
                             # Publish each warning immediately; don't wait for the slowest CAP document.
                             with self.lock, self.connect() as db:
                                 db.execute("INSERT OR IGNORE INTO alerts VALUES (?, ?)", (record["url"], json.dumps(record)))
                         else:
                             failed += 1
-                health.update(entries=len(urls), failed_entries=failed)
+                            failures.append({"url": url, "reason": reason, "attempted_at": utcnow().isoformat()})
+                # A present immutable CAP record was seen in the freshly fetched index.
+                with self.lock, self.connect() as db:
+                    for url in urls:
+                        row = db.execute("SELECT data FROM alerts WHERE url=?", (url,)).fetchone()
+                        if row:
+                            record = json.loads(row[0])
+                            record["last_seen_at"] = health["last_feed_success"]
+                            db.execute("UPDATE alerts SET data=? WHERE url=?", (json.dumps(record), url))
+                health.update(entries=len(urls), failed_entries=failed, failures=failures, checked_entries=len(urls)-failed)
                 if failed:
                     health["error"] = f"{failed} official alert documents could not be checked. Coverage is incomplete."
                 else:
                     health["last_success"] = utcnow().isoformat()
             except Exception:
                 health["error"] = "Official feed unavailable. Previously received warnings may have changed."
+                health["feed_error"] = "RSS retrieval or parsing failed"
+            health["checking"] = False
             with self.lock, self.connect() as db:
                 db.execute("INSERT OR REPLACE INTO state VALUES ('feed', ?)", (json.dumps(health),))
         finally:
@@ -229,8 +245,9 @@ class Operations:
             records = [json.loads(row[0]) for row in db.execute("SELECT data FROM alerts")]
             reports = [json.loads(row[0]) for row in db.execute("SELECT data FROM reports")]
             reviews = db.execute("SELECT report_id, data FROM reviews ORDER BY id").fetchall()
-        success = timestamp(health.get("last_success"))
-        health.update(stale=bool(health.get("error")) or not success or now - success > timedelta(minutes=5),
+        success = timestamp(health.get("last_feed_success") or health.get("last_success"))
+        stale = bool(health.get("feed_error")) or not success or now - success > timedelta(minutes=5)
+        health.update(stale=stale, status="stale" if stale else "partial" if health.get("failed_entries") else "current",
                       coverage=COVERAGE, polling_seconds=120)
         official = [r for r in records if r["status"] == "Actual" and r["scope"] == "Public"]
         superseded = {tuple(ref) for r in official if r["message_type"] in ("Update", "Cancel") for ref in r["references"]}
@@ -246,7 +263,9 @@ class Operations:
                     continue
                 state = "unknown_expiry" if not expiry else "scheduled" if timestamp(info["effective_at"]) > now else "active"
                 alerts.append({**{k: v for k, v in record.items() if k not in ("infos", "references")}, **info,
-                               "id": record["identifier"] + ":" + str(index), "state": state, "match_scope": "district"})
+                               "id": record["identifier"] + ":" + str(index), "state": state, "match_scope": "district",
+                               "coverage_incomplete": health["status"] != "current",
+                               "record_current": not stale and bool(timestamp(record.get("last_seen_at"))) and now - timestamp(record["last_seen_at"]) <= timedelta(minutes=5)})
         local = []
         for report in reports:
             if report["location"] == location and now - timestamp(report["submitted_at"]) <= timedelta(days=7):
@@ -262,9 +281,9 @@ class Operations:
 def operational_sources(snapshot):
     """Only current official warnings and recent human-reviewed reports enter AI evidence."""
     sources = []
-    if not snapshot["feed"]["stale"]:
+    if not snapshot["feed"]["stale"] and snapshot["feed"].get("status") != "partial":
         for alert in snapshot["alerts"]:
-            if alert["state"] != "active":
+            if alert["state"] != "active" or not alert.get("record_current", True):
                 continue
             sources.append({"id": "A" + str(len(sources) + 1), "kind": "official_alert",
                             "title": alert["event"], "publisher": alert["sender"], "url": alert["url"],
@@ -274,11 +293,12 @@ def operational_sources(snapshot):
                             "expires_at": alert["expires_at"], "certainty": alert["certainty"],
                             "limitation": "District warning, not confirmation of street flooding, affected people or supply needs."})
     for report in snapshot["reports"]:
-        if report["status"] == "reviewed" and not report["stale"]:
+        if report["status"] == "reviewed" and not report["stale"] and not report.get("pending_updates"):
             sources.append({"id": "F" + report["id"], "kind": "field_report",
                             "title": report["landmark"], "publisher": "Coordinator-reviewed field report",
                             "url": None, "published_at": report["observed_at"], "retrieved_at": report["submitted_at"],
                             "excerpt": report["description"] + " Reported needs: " + report["needs"],
+                            "reported_resources": [{**r, "unit": {"food": "kits", "water": "litres", "medical": "kits", "shelter": "places", "other": "items"}[r["kind"]]} for r in report.get("resources", [])],
                             "scope": "locality", "content_scope": "reviewed_report", "review": report["last_review"],
                             "limitation": "Human-reviewed report, not independently certified ground truth. Check observation time and review method."})
     return sources

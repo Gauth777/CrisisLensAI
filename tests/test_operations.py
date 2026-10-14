@@ -99,8 +99,14 @@ def test_feed_failure_partial_failure_and_age_mark_cached_records_stale(tmp_path
     assert snapshot["alerts"] and snapshot["feed"]["stale"]
     assert operational_sources(snapshot) == []
     seed(store, {URL: cap(), URL.replace("100", "101"): b"not xml"})
-    assert store.snapshot("Tambaram")["feed"]["failed_entries"] == 1
-    assert store.snapshot("Tambaram")["feed"]["stale"]
+    snapshot = store.snapshot("Tambaram")
+    assert snapshot["feed"]["failed_entries"] == 1
+    assert not snapshot["feed"]["stale"]
+    assert snapshot["feed"]["status"] == "partial"
+    assert snapshot["alerts"][0]["record_current"]
+    assert snapshot["alerts"][0]["coverage_incomplete"]
+    assert snapshot["feed"]["failures"][0]["reason"] == "ParseError"
+    assert operational_sources(snapshot) == []
 
 
 def test_feed_does_not_fetch_arbitrary_links_or_generic_ndma_author():
