@@ -1,10 +1,10 @@
-# CrisisLens Field Lab (V0.7)
+# CrisisLens Field Lab (V0.8)
 
 Purpose: practise deciding where an NGO can help, what evidence supports the decision, and when a changing situation requires a new plan.
 
 Open **Try a simulation** in the live header, or go to `http://127.0.0.1:8000/#simulation`. Choose a story. No model key, live source feed or map tile download is needed by the simulation. The backend must be running.
 
-## Four fictional stories
+## Six fictional stories
 
 | Scenario | Area | Decision to practise |
 |---|---|---|
@@ -14,6 +14,8 @@ Open **Try a simulation** in the live header, or go to `http://127.0.0.1:8000/#s
 | Three areas. One team. | All three | Compare water, food and medical-kit requests. Resolving the primary request does not resolve the other areas. |
 
 All observations, quantities, weather, checks and outcomes are fictional. They do not describe current or historical conditions. The schematic is a locality illustration, not a route or flood-risk map.
+
+Two additional exercises are **The stories don’t agree** (conflicting access and quantities) and **Help needed. How much?** (corroborated need with missing quantities). See [the evaluator walkthrough](INTELLIGENCE_VALIDATION.md).
 
 ## Five-minute demonstration
 

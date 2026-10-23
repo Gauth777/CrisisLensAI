@@ -293,7 +293,7 @@ def operational_sources(snapshot):
                             "expires_at": alert["expires_at"], "certainty": alert["certainty"],
                             "limitation": "District warning, not confirmation of street flooding, affected people or supply needs."})
     for report in snapshot["reports"]:
-        if report["status"] == "reviewed" and not report["stale"] and not report.get("pending_updates"):
+        if report["status"] == "reviewed" and not report["stale"] and not report.get("pending_updates") and not report.get("conflicts") and report.get("demand_status") != "not_needed":
             sources.append({"id": "F" + report["id"], "kind": "field_report",
                             "title": report["landmark"], "publisher": "Coordinator-reviewed field report",
                             "url": None, "published_at": report["observed_at"], "retrieved_at": report["submitted_at"],

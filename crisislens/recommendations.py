@@ -83,6 +83,7 @@ Supported/contradicted are interpretations of supplied evidence, not guarantees 
 unless evidence directly addresses the claim. Contradicted requires affirmative opposing evidence.
 Do not conflate a reported water level with street depth or infer causality from a single measurement.
 Forecast rain is uncertain: describe the hourly forecast window, probability if available, source and time.
+If evidence_issues reports conflicts or hold_for_check, explicitly state the uncertainty and recommend resolving it. Never choose a convenient report or average incompatible quantities. Quantity bounds in evidence_issues are per-request proposals, not stock allocations.
 Use conditional wording when evidence is missing. Say what should be checked next rather than inventing facts.
 Return only JSON matching the provided schema, with concise answer and at most 4 claims, 3 recommendations,
 3 affected groups and 4 supply suggestions. Empty source_ids means no documentary support, not confirmation.
@@ -95,6 +96,7 @@ def recommend(provider: LLMProvider, question: RecommendationQuestion, context: 
     # Forecast timeline is shown by the UI; the model gets the bounded weather
     # summary and first expected rain window, not a duplicated time series.
     payload = {"question": question.model_dump(), "now": datetime.now(timezone.utc).isoformat(),
+               "evidence_issues": context.get("evidence_issues", {}),
                "sources": sources, "source_status": context["source_status"],
                "coverage_note": context["coverage_note"]}
     prompt = "Assess this request using only this bundle:\n" + json.dumps(payload, ensure_ascii=False)
@@ -123,6 +125,16 @@ def recommend(provider: LLMProvider, question: RecommendationQuestion, context: 
             if claim.status != "insufficient_evidence":
                 claim.status = "insufficient_evidence"
                 claim.explanation = "Available citations do not independently establish this claim. " + claim.explanation
+    issues = context.get("evidence_issues", {})
+    if issues.get("conflicts"):
+        for claim in result.claims:
+            if claim.category in ("incident", "needs", "access"):
+                claim.status = "insufficient_evidence"
+        result.headline = "Resolve conflicting reports before committing supplies"
+        result.answer = "Reports for this request disagree. Compare the source records and contact the site before approving a response."
+        result.supplies = []
+        result.affected_groups = []
+        result.recommendations = [CitedItem(title="Resolve the conflicting records", explanation="Ask the site contact to clarify current access and remaining needs.", source_ids=[])]
     if question.demo:
         result.answer = "Hypothetical demonstration. " + result.answer
     return result

@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from .data.operations import Operations, FieldReport, Review, utcnow, timestamp
 from .schemas import PilotLocation
+from .reliability import annotate_reports, resource_check
 
 
 class Resource(BaseModel):
@@ -15,17 +16,29 @@ class Resource(BaseModel):
     quantity: float = Field(gt=0, le=1000000)
 
 
+def unique_resources(value):
+    if len({r.kind for r in value}) != len(value):
+        raise ValueError("Enter one quantity per resource kind.")
+    return value
+
+
 class ReportInput(FieldReport):
+    access_status: Literal["unknown", "passable", "blocked"] = "unknown"
+    demand_status: Literal["unknown", "needed", "not_needed"] = "unknown"
     resources: list[Resource] = Field(default_factory=list, max_length=5)
+    _unique_resources = field_validator("resources")(unique_resources)
 
 
 class ReportUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    access_status: Literal["unknown", "passable", "blocked"] = "unknown"
+    demand_status: Literal["unknown", "needed", "not_needed"] = "unknown"
     outcome: Literal["still_needed", "partly_fulfilled", "resolved"]
     observed_at: datetime
     note: str = Field(min_length=15, max_length=2000)
     needs: str = Field(max_length=500)
     resources: list[Resource] = Field(default_factory=list, max_length=5)
+    _unique_resources = field_validator("resources")(unique_resources)
 
     @field_validator("observed_at")
     @classmethod
@@ -44,6 +57,7 @@ class PlanInput(BaseModel):
     briefing_id: str | None = None
     volunteers: int = Field(ge=0, le=10000)
     resources: list[Resource] = Field(default_factory=list, max_length=5)
+    _unique_resources = field_validator("resources")(unique_resources)
     notes: str = Field(default="", max_length=3000)
 
 
@@ -105,7 +119,8 @@ class Workflow(Operations):
                     if (update["outcome"] == "resolved") != (review.status == "resolved"):
                         raise ValueError("A resolved update requires a resolved review outcome.")
                     record.update(description=update["note"], observed_at=update["observed_at"],
-                                  needs=update["needs"], resources=update["resources"], status=review.status)
+                                  needs=update["needs"], resources=update["resources"], status=review.status,
+                                  access_status=update.get("access_status", "unknown"), demand_status=update.get("demand_status", "unknown"))
                 update.update(status="rejected" if review.status == "rejected" else "accepted", reviewed_at=utcnow().isoformat())
                 db.execute("UPDATE report_updates SET data=? WHERE id=?", (json.dumps(update), update_id))
             else:
@@ -125,6 +140,7 @@ class Workflow(Operations):
         for report in result["reports"]:
             report["updates"] = sorted([u for rid, u in updates if rid == report["id"]], key=lambda u: u["submitted_at"], reverse=True)
             report["pending_updates"] = sum(u["status"] == "pending" for u in report["updates"])
+        annotate_reports(result["reports"])
         return result
 
     def save_briefing(self, data):
@@ -169,9 +185,12 @@ class Workflow(Operations):
             records = [json.loads(row[0]) for row in db.execute("SELECT data FROM plans")]
             reports = {rid: json.loads(data) for rid, data in db.execute("SELECT id, data FROM reports")}
             pending = {rid for rid, data in db.execute("SELECT report_id, data FROM report_updates") if json.loads(data)["status"] == "pending"}
+        annotated = {r["id"]: r for a in ("Velachery", "Tambaram", "Chromepet") for r in self.snapshot(a)["reports"]}
         for plan in records:
+            check = annotated.get(plan["report_id"])
+            plan["resource_check"] = resource_check(check, plan["resources"])
             current = reports.get(plan["report_id"])
-            plan["source_changed"] = bool(plan["report_id"]) and (not current or current["revision"] != plan["report_snapshot"]["revision"] or current["status"] != "reviewed" or utcnow() - timestamp(current["observed_at"]) > timedelta(hours=6) or plan["report_id"] in pending)
+            plan["source_changed"] = bool(plan["report_id"]) and (not current or current["revision"] != plan["report_snapshot"]["revision"] or current["status"] != "reviewed" or utcnow() - timestamp(current["observed_at"]) > timedelta(hours=6) or plan["report_id"] in pending or bool((check or {}).get("conflicts")) or (check or {}).get("access_status") == "blocked" or (check or {}).get("demand_status") == "not_needed")
         return sorted(records, key=lambda p: p["updated_at"], reverse=True)
 
     def change_plan(self, identifier, change):
@@ -202,6 +221,9 @@ class Workflow(Operations):
                 if (not current or current["status"] != "reviewed" or current["revision"] != record["report_snapshot"]["revision"] or
                         utcnow() - timestamp(current["observed_at"]) > timedelta(hours=6) or any(u["status"] == "pending" for u in pending)):
                     raise ValueError("The request is outdated, changed or awaiting review. Check it and create a fresh draft.")
+                checked = next((r for r in self.snapshot(current["location"])["reports"] if r["id"] == current["id"]), {})
+                if checked.get("conflicts") or current.get("access_status") == "blocked" or current.get("demand_status") == "not_needed":
+                    raise ValueError("Conflicting reports, blocked access or no current demand: resolve the evidence before approval.")
                 if not current.get("needs", "").strip() and not current.get("resources"):
                     raise ValueError("No assistance request is recorded. Keep this as a preparedness draft until needs are established.")
                 record["status"] = "approved"

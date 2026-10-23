@@ -24,6 +24,7 @@ from crisislens.data.context import collect_context
 from crisislens.data.operations import operational_sources
 from crisislens.workflow import Workflow as Operations, ReportInput, UpdateReview, ReportUpdate, PlanInput, PlanChange, Resource
 from crisislens.recommendations import RecommendationQuestion, recommend
+from crisislens.reliability import resource_check
 from crisislens.pipeline import CrisisLensPipeline
 from crisislens.simulation import router as simulation_router
 from crisislens.provider_failures import classify_provider_failure
@@ -67,7 +68,7 @@ async def lifespan(app):
         worker.join(timeout=1)
 
 
-app = FastAPI(title="CrisisLens AI", version="0.7.0", lifespan=lifespan)
+app = FastAPI(title="CrisisLens AI", version="0.8.0", lifespan=lifespan)
 app.include_router(simulation_router)
 app.add_middleware(
     CORSMiddleware,
@@ -100,7 +101,7 @@ class AnalysisResponse(BaseModel):
 def health():
     return {
         "status": "ok",
-        "version": "0.7.0",
+        "version": "0.8.0",
         "default_provider": os.getenv("CRISISLENS_PROVIDER", "gemini").strip().lower(),
         "providers": {
             "gemini": {"configured": bool((os.getenv("GEMINI_API_KEY") or "").strip()), "model": (os.getenv("GEMINI_MODEL") or "").strip() or DEFAULT_GEMINI_MODEL},
@@ -247,6 +248,8 @@ def recommendations(request: RecommendationRequest):
     if request.report_id:
         operational = [s for s in operational if s["kind"] != "field_report" or s["id"] == "F" + request.report_id]
     bundle["sources"].extend(operational)
+    selected = next((r for r in snapshot["reports"] if r["id"] == request.report_id), None)
+    bundle["evidence_issues"] = resource_check(selected, [r.model_dump() for r in request.resources])
     bundle["source_status"].append({"name": "SACHET official alerts", "status": "stale_or_unavailable" if snapshot["feed"]["stale"] else "available"})
     bundle["coverage_note"] += " " + snapshot["feed"]["coverage"]
     bundle["sources"].append({"id": "U1", "kind": "user", "title": "Your question or report",
@@ -273,9 +276,18 @@ def recommendations(request: RecommendationRequest):
             "metadata": {"provider": request.provider, "model": provider.model,
                          "generated_at": datetime.now(timezone.utc).isoformat(),
                          "latency_ms": round((time.perf_counter() - started) * 1000, 2)}}
+    selected = next((r for r in snapshot["reports"] if r["id"] == request.report_id), None)
+    response["resource_check"] = resource_check(selected, [r.model_dump() for r in request.resources])
+    response["validation"] = {"citation_ids_checked": True, "source_types_checked": True, "semantic_truth_verified": False, "claim_count": len(answer.claims), "uncertain_claims": sum(c.status == "insufficient_evidence" for c in answer.claims)}
     response["report_revision"] = next((r["revision"] for r in snapshot["reports"] if r["id"] == request.report_id), None)
     response["briefing_id"] = operations().save_briefing(response)
     return response
+
+
+@app.get("/api/evaluation")
+def evaluation_results():
+    from crisislens.intelligence_eval import run_evaluation
+    return run_evaluation()
 
 
 # Build the frontend before starting this server to use a single localhost URL.

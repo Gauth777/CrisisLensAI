@@ -22,6 +22,10 @@ SCENARIOS = {
     "urgent": {"id": "urgent", "title": "Every decision matters", "area": "Tambaram", "eyebrow": "03 / KNOW YOUR ROLE", "summary": "Residents need trained rescue. Your team has supplies, not rescue equipment.", "lesson": "Keep urgent rescue visible while planning support within your capability.", "duration": "5 min", "level": "Urgent assistance", "rain": 42},
     "multi": {"id": "multi", "title": "Three areas. One team.", "area": "All three areas", "eyebrow": "04 / MAKE THE TRADE-OFF", "summary": "Different needs, limited supplies and an access update that changes your plan.", "lesson": "Compare evidenced needs and resource fit without hiding unmet requests.", "duration": "6 min", "level": "Coordination", "rain": 35},
 }
+SCENARIOS.update({
+    "conflict": {"id":"conflict", "title":"The stories don’t agree", "area":"Velachery", "eyebrow":"05 / RESOLVE DISAGREEMENT", "summary":"Two reports. One site. Different quantities and opposite access observations.", "lesson":"Hold recommendations until the conflicting records are reconciled.", "duration":"5 min", "level":"Conflicting reports", "rain":28},
+    "incomplete": {"id":"incomplete", "title":"Help needed. How much?", "area":"Velachery", "eyebrow":"06 / KEEP THE UNKNOWN VISIBLE", "summary":"A water request is corroborated, but nobody has established the quantity.", "lesson":"Do not invent supply quantities when the request is incomplete.", "duration":"4 min", "level":"Incomplete information", "rain":18},
+})
 STAGES = ["Read the conditions", "A report arrives", "Check the evidence", "Access changes", "Recheck the plan", "Review the outcome"]
 STORIES = {
  "rain": [
@@ -49,7 +53,7 @@ PROFILES = {
 
 class Start(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    scenario: Literal["rain", "waterlogging", "urgent", "multi"]
+    scenario: Literal["rain", "waterlogging", "urgent", "multi", "conflict", "incomplete"]
 
 class Event(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -106,12 +110,20 @@ def apply_stage(work, meta):
             p = PROFILES[area]
             report = work.submit(ReportInput(location=area, landmark=p["landmark"], observed_at=utcnow(),
                 description="SIMULATION: an unverified message claims homes are affected. No specific people, quantities or corroboration are supplied." if rain else p["description"],
-                needs="" if rain else p["needs"], resources=[] if rain else p["resources"]))
+                needs="" if rain else p["needs"], resources=[] if rain or meta["scenario"] == "incomplete" else p["resources"],
+                access_status="passable" if meta["scenario"] == "conflict" else "unknown"))
             meta["report_ids"][area] = report["id"]
+        if meta["scenario"] == "conflict":
+            alternative = work.submit(ReportInput(location="Velachery", landmark=PROFILES["Velachery"]["landmark"], observed_at=utcnow(),
+                description="SIMULATION: a second observer reports the same community point has blocked access and requests 200 litres of water. This disagrees with the first record.",
+                needs="Water at the same community point", access_status="blocked", resources=[{"kind":"water","quantity":200}]))
+            meta["alternative_id"] = alternative["id"]
     elif stage == 2:
         for identifier in meta["report_ids"].values():
             review(work, find_report(work, identifier), "rejected" if rain else "reviewed",
                    note="SIMULATION: scripted on-site check found a passable street and no assistance request at this one training site. Earlier message rejected." if rain else None)
+        if meta.get("alternative_id"):
+            review(work, find_report(work, meta["alternative_id"]))
     elif stage >= 3 and not rain:
         report = find_report(work, meta["report_ids"][primary(meta)])
         if stage == 3:
@@ -119,6 +131,8 @@ def apply_stage(work, meta):
                 note="SIMULATION: the originally discussed approach is now reported blocked. Do not use the previous receiving arrangement until it is checked.", needs=report["needs"], resources=report["resources"]))
             meta["pending_id"] = update["id"]
         elif stage == 4:
+            if meta.get("alternative_id"):
+                review(work, find_report(work, meta["alternative_id"]), status="rejected", note="SIMULATION: scripted follow-up identifies the second report as incorrect for this site. Retain it as rejected; do not delete the disagreement history.")
             # Preserve the blocked-access observation, then record a separate later check.
             review(work, report, update_id=meta["pending_id"], note="SIMULATION: scripted check confirms original access is blocked. Previous access assumption is no longer usable.")
             report = find_report(work, report["id"])
@@ -135,6 +149,10 @@ def apply_stage(work, meta):
 def state(work, meta):
     scenario = SCENARIOS[meta["scenario"]]
     story = STORIES["rain" if meta["scenario"] == "rain" else "response"][meta["stage"]]
+    if meta["scenario"] == "conflict" and meta["stage"] in (1, 2, 3):
+        story = ("These reports disagree.", "Two training records describe the same site with different quantities and opposite access observations. Neither should silently override the other.", "Compare both records. Quantity proposals and approval are held until reconciliation.")
+    if meta["scenario"] == "incomplete" and meta["stage"] in (1, 2, 3, 4):
+        story = ("The need is reported. The quantity is unknown.", "The fictional site requests water but no reliable quantity is recorded. A reviewed report can still be incomplete.", "Check the missing information. Do not invent litres or people counts.")
     reports = []
     for area in AREAS:
         for report in work.snapshot(area)["reports"]:
