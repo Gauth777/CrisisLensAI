@@ -41,7 +41,7 @@ The three-area story leaves Tambaram and Chromepet open at the end. The low-rain
 
 The new routes are under `/api/simulations`. Each UUID session owns a separate SQLite file under ignored `runtime/simulations/`, configurable with `CRISISLENS_SIM_DB_DIR`. Sessions never use `api.operations()` or a live report/briefing. Cross-session and live report IDs cannot be attached to a simulation plan.
 
-The browser remembers the session ID, so refreshing resumes its reports, stage and plans. Unsaved inventory edits are not persisted. A session expires after four hours, before the normal six-hour freshness limit. Old UUID-named files older than a day are cleaned when a new session starts. Reset deletes only that session's reports, reviews, updates, plans and briefings. Separate users should start separate scenarios; sharing a session URL/id shares its practice state. This remains a trusted-workspace prototype, not a public multi-tenant service.
+The browser remembers the session ID, but entry and refresh always open the scenario chooser. **Resume saved session** explicitly restores its reports, stage and plans. Choosing any scenario card starts a fresh session; **Choose scenario** in the sticky header returns to the chooser. Unsaved inventory edits are not persisted. A session expires after four hours, before the normal six-hour freshness limit. Old UUID-named files older than a day are cleaned when a new session starts. Reset deletes only that session's reports, reviews, updates, plans and briefings. Separate users should start separate scenarios; sharing a session URL/id shares its practice state. This remains a trusted-workspace prototype, not a public multi-tenant service.
 
 ## Tests
 

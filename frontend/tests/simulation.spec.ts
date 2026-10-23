@@ -19,7 +19,7 @@ test("waterlogging walkthrough approves, detects source changes, resumes and res
  await evidence(page);await expect(page.getByRole("dialog")).toContainText("120 litres requested · 80 available");await page.screenshot({path:info.outputPath("simulation-evidence-desktop.png"),animations:"disabled"});await savePlan(page);
  await page.locator(".sim-plan-card").first().click();await checks(page);await expect(page.locator(".sim-plan-card").first()).toContainText("Practice approved");
  await next(page);await expect(page.locator(".sim-plan-card").first()).toContainText("Source changed");
- await page.reload();await expect(page.getByRole("heading",{name:"Your old plan needs a fresh look."})).toBeVisible();
+ await page.reload();await expect(page.getByRole("heading",{name:/Before the response/})).toBeVisible();await page.getByRole("button",{name:"Resume saved session"}).click();await expect(page.getByRole("heading",{name:"Your old plan needs a fresh look."})).toBeVisible();
  await next(page);await expect(page.locator(".sim-request")).toContainText("80 litres");
  await next(page);await expect(page.locator(".sim-request")).toContainText("Resolved");await expect(page.locator(".sim-outcome")).toContainText("0fictional requests still open");
  await page.getByRole("button",{name:"Reset scenario",exact:true}).click();await expect(page.getByRole("heading",{name:"Start with what is known."})).toBeVisible();await expect(page.locator(".sim-request")).toHaveCount(0);
@@ -41,4 +41,22 @@ test("three area story stays usable on mobile, keeps rescue visible and exports 
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  for(let i=0;i<3;i++)await next(page);
  await expect(page.locator(".sim-outcome")).toContainText("2fictional requests still open");await expect(page.locator(".sim-outcome")).toContainText("Tambaram, Chromepet");
+});
+
+
+test("scenario chooser is always reachable and resuming is explicit",async({page})=>{
+ await open(page);await page.getByRole("button",{name:/From report to response/}).click();await next(page);
+ await page.getByRole("button",{name:"Choose scenario",exact:true}).click();
+ await expect(page.getByRole("heading",{name:/Before the response/})).toBeVisible();
+ await page.getByRole("button",{name:"Resume saved session"}).click();
+ await expect(page.getByRole("heading",{name:"People report a specific need."})).toBeVisible();
+ await page.getByRole("button",{name:"Return to live",exact:true}).click();
+ await page.getByRole("button",{name:/Try a simulation/}).click();
+ await expect(page.getByRole("heading",{name:/Before the response/})).toBeVisible();
+ await page.getByRole("button",{name:/From report to response/}).click();
+ await expect(page.getByRole("heading",{name:"Start with what is known."})).toBeVisible();
+ await expect(page.locator(".sim-request")).toHaveCount(0);
+ await page.getByRole("button",{name:"Choose scenario",exact:true}).click();
+ await page.getByRole("button",{name:/Rain is not a rescue call/}).click();
+ await expect(page.getByRole("heading",{name:"A forecast is a reason to check."})).toBeVisible();
 });
