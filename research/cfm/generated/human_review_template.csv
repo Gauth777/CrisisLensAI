@@ -1,0 +1,7 @@
+incident_id,event_group,area,reported_observation_day,evidence_status,unresolved_conflicts,reviewer,reviewed_on,confirmed_onset,confirmed_end,adjudication,evidence_notes
+tambaram-2015,chennai-floods-2015,Tambaram,2015-12-03,officially_reported,0,,,,,,
+velachery-2015,chennai-floods-2015,Velachery,2015-12-05,officially_reported,0,,,,,,
+chromepet-2021,chennai-rains-2021-11,Chromepet,2021-11-11,press_supported_details_conflict,1,,,,,,
+tambaram-2023,michaung-2023,Tambaram,2023-12-06,press_supported,0,,,,,,
+velachery-2023,michaung-2023,Velachery,2023-12-06,press_supported,0,,,,,,
+chromepet-2024,fengal-2024,Chromepet,2024-11-30,press_supported_details_conflict,1,,,,,,

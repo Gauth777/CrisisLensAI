@@ -1,0 +1,80 @@
+[
+  {
+    "incident_id": "tambaram-2015",
+    "event_group": "chennai-floods-2015",
+    "anchor": "2015-12-03",
+    "anchor_kind": "reported_observation_day_not_onset",
+    "window": "preceding_7_calendar_days_excluding_anchor",
+    "exact_locality_series_rows": 11688,
+    "window_rows": 7,
+    "window_nonnegative_nonmissing_readings": 7,
+    "distinct_recorded_days": 7,
+    "predictive_join_allowed": false,
+    "reason": "Onset, measurement intervals and station-to-site relationship remain unverified."
+  },
+  {
+    "incident_id": "velachery-2015",
+    "event_group": "chennai-floods-2015",
+    "anchor": "2015-12-05",
+    "anchor_kind": "reported_observation_day_not_onset",
+    "window": "preceding_7_calendar_days_excluding_anchor",
+    "exact_locality_series_rows": 0,
+    "window_rows": 0,
+    "window_nonnegative_nonmissing_readings": 0,
+    "distinct_recorded_days": 0,
+    "predictive_join_allowed": false,
+    "reason": "Onset, measurement intervals and station-to-site relationship remain unverified."
+  },
+  {
+    "incident_id": "chromepet-2021",
+    "event_group": "chennai-rains-2021-11",
+    "anchor": "2021-11-11",
+    "anchor_kind": "reported_observation_day_not_onset",
+    "window": "preceding_7_calendar_days_excluding_anchor",
+    "exact_locality_series_rows": 0,
+    "window_rows": 0,
+    "window_nonnegative_nonmissing_readings": 0,
+    "distinct_recorded_days": 0,
+    "predictive_join_allowed": false,
+    "reason": "Onset, measurement intervals and station-to-site relationship remain unverified."
+  },
+  {
+    "incident_id": "tambaram-2023",
+    "event_group": "michaung-2023",
+    "anchor": "2023-12-06",
+    "anchor_kind": "reported_observation_day_not_onset",
+    "window": "preceding_7_calendar_days_excluding_anchor",
+    "exact_locality_series_rows": 11688,
+    "window_rows": 0,
+    "window_nonnegative_nonmissing_readings": 0,
+    "distinct_recorded_days": 0,
+    "predictive_join_allowed": false,
+    "reason": "Onset, measurement intervals and station-to-site relationship remain unverified."
+  },
+  {
+    "incident_id": "velachery-2023",
+    "event_group": "michaung-2023",
+    "anchor": "2023-12-06",
+    "anchor_kind": "reported_observation_day_not_onset",
+    "window": "preceding_7_calendar_days_excluding_anchor",
+    "exact_locality_series_rows": 0,
+    "window_rows": 0,
+    "window_nonnegative_nonmissing_readings": 0,
+    "distinct_recorded_days": 0,
+    "predictive_join_allowed": false,
+    "reason": "Onset, measurement intervals and station-to-site relationship remain unverified."
+  },
+  {
+    "incident_id": "chromepet-2024",
+    "event_group": "fengal-2024",
+    "anchor": "2024-11-30",
+    "anchor_kind": "reported_observation_day_not_onset",
+    "window": "preceding_7_calendar_days_excluding_anchor",
+    "exact_locality_series_rows": 0,
+    "window_rows": 0,
+    "window_nonnegative_nonmissing_readings": 0,
+    "distinct_recorded_days": 0,
+    "predictive_join_allowed": false,
+    "reason": "Onset, measurement intervals and station-to-site relationship remain unverified."
+  }
+]

@@ -90,3 +90,7 @@ Outputs in `runtime/cfm/`: raw source files, `audit.json`, compact `findings.jso
 5. Keep GenAI central: retrieve dated, relevant observations/history and generate concise explanations, contradictions and information gaps. A supporting risk model may supply evidence after validation. It must not infer supply quantities or replace reviewed assistance requests. This remains non-agentic.
 
 Until these gates are met, historical layers can support explicitly dated historical context; they cannot establish a current emergency. This audit and benchmark are completed. A validated flood classifier and live CFM integration are not.
+
+## Follow-up evidence pack (30 October 2026)
+
+See [the station and incident evidence pack](../research/cfm/README.md) for a self-contained interactive coverage atlas, six sourced historical cases, preserved reporting conflicts, a sensor/event availability check and a human-review sheet. This follow-up does not remove the modelling or reuse limitations above.

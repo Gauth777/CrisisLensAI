@@ -1,0 +1,11 @@
+{
+  "checked_on": "2026-10-30",
+  "operational_conversion_allowed": false,
+  "fields": [
+    {"field":"CFM rainfall units","finding":"CFM public interface labels rainfall in mm, but downloaded field accumulation semantics are not documented by that label alone.","status":"partially_supported_not_validated_for_raw_fields","source":"https://chennaifloodmonitor.tn.gov.in/","unresolved":["Accumulation/reset interval by station network","Observation-end versus observation-start date","Missing/sentinel meanings"]},
+    {"field":"CFM waterlevel datum","finding":"A numerical level is not necessarily inundation depth above a street. Per-sensor zero, datum and calibration have not been established.","status":"unresolved","source":"https://chennaifloodmonitor.tn.gov.in/Master/AboutUs","unresolved":["Datum/zero per sensor","Units and sentinel flags for raw waterlevel","Relation to ground elevation and warning thresholds"]},
+    {"field":"CFM AWLR date versus combined_datetime","finding":"Prior row audit found 314222 one-day calendar disagreements. No correction rule verified.","status":"unresolved_do_not_shift","source":"../../docs/data/cfm_audit_2026-10-29.json","unresolved":["Authoritative timestamp field","Timezone and ingestion transformations"]},
+    {"field":"NWDP manual daily rainfall alternative","finding":"Official dataset description specifies daily manual rainfall and millimetres. Equivalence to CFM station IDs or individual readings is not established.","status":"alternative_source_metadata_only","source":"https://nwdp.nwic.gov.in/dataset/rainfall-manual-daily-tamil-nadu-sw-and-gw-department","unresolved":["Station crosswalk","Reporting-day convention","Actual rows and coverage not downloaded in this step"]},
+    {"field":"NWDP hourly river-level alternative","finding":"Official description specifies hourly levels in metres but uses both telemetry and manual wording. It does not establish the CFM sensor datum.","status":"alternative_source_metadata_only","source":"https://nwdp.nwic.gov.in/dataset/river-water-level-telemetry-hourly-tamil-nadu-sw-and-gw-department","unresolved":["Station identity and datum","Telemetry/manual metadata inconsistency","Actual rows not downloaded in this step"]}
+  ]
+}
