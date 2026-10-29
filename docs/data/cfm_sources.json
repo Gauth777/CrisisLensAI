@@ -1,0 +1,61 @@
+{
+  "chennai-flood-monitor-transactions": {
+    "repository": "CashlessConsumer/chennai-flood-monitor-transactions",
+    "revision": "e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6",
+    "files": [
+      "README.md",
+      "data/awlr_waterlevel.parquet",
+      "data/aws_arg_rain_met.parquet",
+      "data/srg_rain.parquet",
+      "stations/administrativetable.parquet",
+      "stations/agro_stations.parquet",
+      "stations/arg_iitm_existing.parquet",
+      "stations/arg_proposed.parquet",
+      "stations/arg_registry_328.parquet",
+      "stations/awlr_44.parquet",
+      "stations/awlr_gcc_existing_46.parquet",
+      "stations/awlr_iitm_existing.parquet",
+      "stations/awlr_plank.parquet",
+      "stations/awlr_proposed_78.parquet",
+      "stations/awlr_proposed_basin.parquet",
+      "stations/awlr_proposed_basin_139.parquet",
+      "stations/awlr_radarpressureultrasonic.parquet",
+      "stations/awlr_shaftencoder.parquet",
+      "stations/awlr_stations_121.parquet",
+      "stations/aws_iitm_existing.parquet",
+      "stations/aws_proposed.parquet",
+      "stations/aws_registry.parquet",
+      "stations/aws_registry_39.parquet",
+      "stations/aws_registry_sql.parquet",
+      "stations/dgps_tanks.parquet",
+      "stations/gate_sensors_proposed.parquet",
+      "stations/groundwater_stations.parquet",
+      "stations/hydrological_stations.parquet",
+      "stations/meteorological_stations.parquet",
+      "stations/raingauge_proposed.parquet",
+      "stations/raingauge_stations_63.parquet",
+      "stations/srg.parquet",
+      "stations/srg_pwd_existing_53.parquet",
+      "stations/srg_registry.parquet",
+      "stations/tidal_stations.parquet"
+    ]
+  },
+  "chennai-flood-history": {
+    "repository": "CashlessConsumer/chennai-flood-history",
+    "revision": "60074d53fc80d5b61e07494d4c52cebafe242198",
+    "files": [
+      "README.md",
+      "crowdsourced/reports_scrubbed.parquet",
+      "flood_extents/irs_flood_extent_2005.parquet",
+      "flood_extents/nrsc_flood_extent_2015.parquet",
+      "floodwarnings.parquet",
+      "hotspots_2015/hotspots_gcc_2015.parquet",
+      "hotspots_2015/hotspots_gcc_nem2020.parquet",
+      "hotspots_2015/hotspots_irs_2005.parquet",
+      "hotspots_2015/hotspots_kancheepuram_2015.parquet",
+      "hotspots_2015/hotspots_tiruvallur_2015.parquet",
+      "hotspots_2015/hotspots_vellore_2015.parquet",
+      "wards/ward_waterdepth_minmax.parquet"
+    ]
+  }
+}

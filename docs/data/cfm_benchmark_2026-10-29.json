@@ -1,0 +1,77 @@
+{
+  "task": "Predict next recorded Tambaram rainfall value",
+  "status": "research_only_not_validated_for_operations",
+  "versions": {
+    "python": "3.12.14",
+    "pandas": "2.2.3",
+    "scikit_learn": "1.8.0"
+  },
+  "source_sha256": "f9bbbf4395581b2f7a546c1d1a0ba3798d6f9ab4e8f5863c513c6e9059e4f903",
+  "features": [
+    "reading_lag_0",
+    "reading_lag_1",
+    "reading_lag_2",
+    "reading_lag_3",
+    "reading_lag_4",
+    "reading_lag_5",
+    "reading_lag_6",
+    "month_sin",
+    "month_cos"
+  ],
+  "splits": {
+    "train": {
+      "rows": 9491,
+      "target_start": "1988-01-07",
+      "target_end": "2013-12-31"
+    },
+    "validation": {
+      "rows": 1096,
+      "target_start": "2014-01-01",
+      "target_end": "2016-12-31"
+    },
+    "test": {
+      "rows": 1094,
+      "target_start": "2017-01-01",
+      "target_end": "2019-12-30"
+    }
+  },
+  "metrics": {
+    "validation": {
+      "persistence": {
+        "mae_source_units": 6.218795620437956,
+        "rmse_source_units": 28.988287969731125
+      },
+      "training_month_mean": {
+        "mae_source_units": 6.218422534540341,
+        "rmse_source_units": 21.999910641222183
+      },
+      "random_forest": {
+        "mae_source_units": 5.372764217130509,
+        "rmse_source_units": 21.16111712785035
+      }
+    },
+    "test": {
+      "persistence": {
+        "mae_source_units": 3.992138939670933,
+        "rmse_source_units": 13.42910561108636
+      },
+      "training_month_mean": {
+        "mae_source_units": 4.924690961709192,
+        "rmse_source_units": 11.163597530650662
+      },
+      "random_forest": {
+        "mae_source_units": 4.018132404817717,
+        "rmse_source_units": 10.37176383257104
+      }
+    }
+  },
+  "flood_prediction_accuracy": null,
+  "limitations": [
+    "No flood or assistance-demand target.",
+    "Source rainfall units, accumulation interval and date conventions not independently validated.",
+    "Historical station-name match is not proof of present locality coverage.",
+    "No tuning on validation or test; fixed experimental parameters.",
+    "Never deploy this research model for warnings or recommendations."
+  ],
+  "promotion_allowed": false
+}

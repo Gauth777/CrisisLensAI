@@ -1,0 +1,1601 @@
+{
+  "generated_at": "2026-10-29T18:08:33.136219+00:00",
+  "sources": {
+    "chennai-flood-monitor-transactions": {
+      "repository": "CashlessConsumer/chennai-flood-monitor-transactions",
+      "revision": "e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6",
+      "files": [
+        "README.md",
+        "data/awlr_waterlevel.parquet",
+        "data/aws_arg_rain_met.parquet",
+        "data/srg_rain.parquet",
+        "stations/administrativetable.parquet",
+        "stations/agro_stations.parquet",
+        "stations/arg_iitm_existing.parquet",
+        "stations/arg_proposed.parquet",
+        "stations/arg_registry_328.parquet",
+        "stations/awlr_44.parquet",
+        "stations/awlr_gcc_existing_46.parquet",
+        "stations/awlr_iitm_existing.parquet",
+        "stations/awlr_plank.parquet",
+        "stations/awlr_proposed_78.parquet",
+        "stations/awlr_proposed_basin.parquet",
+        "stations/awlr_proposed_basin_139.parquet",
+        "stations/awlr_radarpressureultrasonic.parquet",
+        "stations/awlr_shaftencoder.parquet",
+        "stations/awlr_stations_121.parquet",
+        "stations/aws_iitm_existing.parquet",
+        "stations/aws_proposed.parquet",
+        "stations/aws_registry.parquet",
+        "stations/aws_registry_39.parquet",
+        "stations/aws_registry_sql.parquet",
+        "stations/dgps_tanks.parquet",
+        "stations/gate_sensors_proposed.parquet",
+        "stations/groundwater_stations.parquet",
+        "stations/hydrological_stations.parquet",
+        "stations/meteorological_stations.parquet",
+        "stations/raingauge_proposed.parquet",
+        "stations/raingauge_stations_63.parquet",
+        "stations/srg.parquet",
+        "stations/srg_pwd_existing_53.parquet",
+        "stations/srg_registry.parquet",
+        "stations/tidal_stations.parquet"
+      ]
+    },
+    "chennai-flood-history": {
+      "repository": "CashlessConsumer/chennai-flood-history",
+      "revision": "60074d53fc80d5b61e07494d4c52cebafe242198",
+      "files": [
+        "README.md",
+        "crowdsourced/reports_scrubbed.parquet",
+        "flood_extents/irs_flood_extent_2005.parquet",
+        "flood_extents/nrsc_flood_extent_2015.parquet",
+        "floodwarnings.parquet",
+        "hotspots_2015/hotspots_gcc_2015.parquet",
+        "hotspots_2015/hotspots_gcc_nem2020.parquet",
+        "hotspots_2015/hotspots_irs_2005.parquet",
+        "hotspots_2015/hotspots_kancheepuram_2015.parquet",
+        "hotspots_2015/hotspots_tiruvallur_2015.parquet",
+        "hotspots_2015/hotspots_vellore_2015.parquet",
+        "wards/ward_waterdepth_minmax.parquet"
+      ]
+    }
+  },
+  "downloaded_files": 47,
+  "table_count": 45,
+  "errors": [],
+  "files": [
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/README.md",
+      "file": "chennai-flood-monitor-transactions/README.md",
+      "bytes": 3993,
+      "sha256": "8fc206b4cf7b65b044d57787d1f760b4866d108a7d9077f4723c335d7195008e"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/data/awlr_waterlevel.parquet",
+      "file": "chennai-flood-monitor-transactions/data/awlr_waterlevel.parquet",
+      "bytes": 3831905,
+      "sha256": "291db4de0b4ea34615b795da1c92e342d60ee4d194a6f39a9c5e2031867e9f3a"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/data/aws_arg_rain_met.parquet",
+      "file": "chennai-flood-monitor-transactions/data/aws_arg_rain_met.parquet",
+      "bytes": 7726282,
+      "sha256": "7e90e3318655f9936f6e83bf54fe0a6d9b568299d21e529c65b40a9bbb6e7664"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/data/srg_rain.parquet",
+      "file": "chennai-flood-monitor-transactions/data/srg_rain.parquet",
+      "bytes": 4566819,
+      "sha256": "f9bbbf4395581b2f7a546c1d1a0ba3798d6f9ab4e8f5863c513c6e9059e4f903"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/administrativetable.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/administrativetable.parquet",
+      "bytes": 11080,
+      "sha256": "9c1e8f71a310a455ad35cbaabdf3e5020654bd363d43277dfbc564c84def407e"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/agro_stations.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/agro_stations.parquet",
+      "bytes": 15822,
+      "sha256": "8059b3e427c7baf5b34ce1cd229138b93cff9ad7013dab54a0bcc5bfebfc6b0b"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/arg_iitm_existing.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/arg_iitm_existing.parquet",
+      "bytes": 12412,
+      "sha256": "76c461671454dde6fae348dae64c8dcb7d798a3e5076c9ebccac0e63cc61e534"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/arg_proposed.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/arg_proposed.parquet",
+      "bytes": 18524,
+      "sha256": "d8921a160791758c4e7d0803163761549e0919c450e341af66d94db01481851b"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/arg_registry_328.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/arg_registry_328.parquet",
+      "bytes": 82603,
+      "sha256": "00ec2630fc148f2000d3e248ce1d6d3a6c2a71b529679a16d71f903ecf0e3c61"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_44.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_44.parquet",
+      "bytes": 25531,
+      "sha256": "d7820caa790755a967b0d2fbdaed6900aca2c5666cb6b3113edb3fc67de161db"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_gcc_existing_46.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_gcc_existing_46.parquet",
+      "bytes": 12484,
+      "sha256": "65008e18b429559674a10bd7f2297d0ead3fa4d598bcc95aa802c2f60911428f"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_iitm_existing.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_iitm_existing.parquet",
+      "bytes": 10591,
+      "sha256": "9e6b687db6fc230e67e42038d9a7132bd2a0ae102cd81d0d61e49993e0e07362"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_plank.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_plank.parquet",
+      "bytes": 10982,
+      "sha256": "04a41fab133c402b1cbdbac707dc5c26bd5810f3a5c7f1a9586cf620fa6411c1"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_proposed_78.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_proposed_78.parquet",
+      "bytes": 24153,
+      "sha256": "4526ec69976ecfc082167dde5c7a01994083cffab41bfd2d52b5bc4519329a71"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_proposed_basin.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_proposed_basin.parquet",
+      "bytes": 21490,
+      "sha256": "d42b6efb59da31ac467532e0fbba2a82fbc767abac2d08f908ac91ac3b333bda"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_proposed_basin_139.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_proposed_basin_139.parquet",
+      "bytes": 21490,
+      "sha256": "d42b6efb59da31ac467532e0fbba2a82fbc767abac2d08f908ac91ac3b333bda"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_radarpressureultrasonic.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_radarpressureultrasonic.parquet",
+      "bytes": 16848,
+      "sha256": "9182965f631854772d9bf420b7fecae7517b09ee03646af2da2ea6ef5751de1d"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_shaftencoder.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_shaftencoder.parquet",
+      "bytes": 39168,
+      "sha256": "386dc0d026fc86aa5e6c8a30f475d330c0e70032e5395007e39c304b6fb27455"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/awlr_stations_121.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/awlr_stations_121.parquet",
+      "bytes": 33825,
+      "sha256": "0701cc4c49ecfe518d6cbaf7a3c01f06e53bc1f2fbeb20904eafb7ce47a0db31"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/aws_iitm_existing.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/aws_iitm_existing.parquet",
+      "bytes": 12184,
+      "sha256": "fbc0e9de997976872ca287ff978ad80778da46eb2451c59a2be31a9e482f3ba6"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/aws_proposed.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/aws_proposed.parquet",
+      "bytes": 13606,
+      "sha256": "a19c7a903ed2ac508b3df22e4bde36972752ef071fac2201894c27dc7ac9577a"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/aws_registry.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/aws_registry.parquet",
+      "bytes": 53618,
+      "sha256": "69a7fb3488c5e5ed71894f1e84c8aea7410a3a6b61bcc56d9f99ebcb29d02f1b"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/aws_registry_39.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/aws_registry_39.parquet",
+      "bytes": 55923,
+      "sha256": "ee43bc9eef2993fdbd431a352ebb9fb9a75e75fc82ef381eeee67b1015c167a2"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/aws_registry_sql.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/aws_registry_sql.parquet",
+      "bytes": 13792,
+      "sha256": "c195acdd5f6467c56e63211bef60dfbe99b89a1bfecc82ee0419bfbf3fffc97f"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/dgps_tanks.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/dgps_tanks.parquet",
+      "bytes": 48842,
+      "sha256": "3868c9303aa4e1a575dd23f458bcc326748843d0659051a4f38be232646bc5b0"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/gate_sensors_proposed.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/gate_sensors_proposed.parquet",
+      "bytes": 12991,
+      "sha256": "d3ed6df12f7e84189a121ae62c9838839ad31f67b65066b4a3c6a5473fb19119"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/groundwater_stations.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/groundwater_stations.parquet",
+      "bytes": 6546,
+      "sha256": "bded12005a2bb11b28538b41ca02eef8ec43660dfbe59b1c0e58b5676c2f625e"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/hydrological_stations.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/hydrological_stations.parquet",
+      "bytes": 6546,
+      "sha256": "bded12005a2bb11b28538b41ca02eef8ec43660dfbe59b1c0e58b5676c2f625e"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/meteorological_stations.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/meteorological_stations.parquet",
+      "bytes": 6546,
+      "sha256": "bded12005a2bb11b28538b41ca02eef8ec43660dfbe59b1c0e58b5676c2f625e"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/raingauge_proposed.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/raingauge_proposed.parquet",
+      "bytes": 6546,
+      "sha256": "bded12005a2bb11b28538b41ca02eef8ec43660dfbe59b1c0e58b5676c2f625e"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/raingauge_stations_63.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/raingauge_stations_63.parquet",
+      "bytes": 21129,
+      "sha256": "e54f37d3785b1c64d29ce52f2fbb5b19b4e11c9bf6f388382f149a887dbe0587"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/srg.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/srg.parquet",
+      "bytes": 26208,
+      "sha256": "680d5a3514c23953e2a796b7eef21f48340522323cc80e385e8fae3941fa83e3"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/srg_pwd_existing_53.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/srg_pwd_existing_53.parquet",
+      "bytes": 13287,
+      "sha256": "b6f2d4734ce9c6256bf2c49b2e89c74547bc4eb3a2edf627ffaf748ae730c980"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/srg_registry.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/srg_registry.parquet",
+      "bytes": 15814,
+      "sha256": "6596fcf8715c3cfeb6dbd1b0796280ee2aa2dfc5b125565788173bdf06ffe576"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-monitor-transactions/resolve/e8db7c44ebb36aa4a7e04b20dc2935ae2253d0c6/stations/tidal_stations.parquet",
+      "file": "chennai-flood-monitor-transactions/stations/tidal_stations.parquet",
+      "bytes": 6546,
+      "sha256": "bded12005a2bb11b28538b41ca02eef8ec43660dfbe59b1c0e58b5676c2f625e"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/README.md",
+      "file": "chennai-flood-history/README.md",
+      "bytes": 2982,
+      "sha256": "eb05b41503b64424405b8c3fde998f174185a9848ca2ae56ad2d403255a5ef94"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/crowdsourced/reports_scrubbed.parquet",
+      "file": "chennai-flood-history/crowdsourced/reports_scrubbed.parquet",
+      "bytes": 20709,
+      "sha256": "fa144c74f5243e8edaa58bdffcec54e3cdf992893a52a8eda4edaa59a0dab895"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/flood_extents/irs_flood_extent_2005.parquet",
+      "file": "chennai-flood-history/flood_extents/irs_flood_extent_2005.parquet",
+      "bytes": 127187,
+      "sha256": "d81dd3a95abd296ab6c08ed3dbde332b20c0600cc909f2df0435b99b9c0bbf80"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/flood_extents/nrsc_flood_extent_2015.parquet",
+      "file": "chennai-flood-history/flood_extents/nrsc_flood_extent_2015.parquet",
+      "bytes": 821814,
+      "sha256": "60735a3a24040906f3dab9abfa21ef8c24a646e7f3db1e94e8986534ede5626d"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/floodwarnings.parquet",
+      "file": "chennai-flood-history/floodwarnings.parquet",
+      "bytes": 9166,
+      "sha256": "0db3a4c202915badd08646bf00ad75e393430b051bf953a8ed636c809b3ddb94"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/hotspots_2015/hotspots_gcc_2015.parquet",
+      "file": "chennai-flood-history/hotspots_2015/hotspots_gcc_2015.parquet",
+      "bytes": 37096,
+      "sha256": "7a9c7f2b608ca5cbbcef0186ae8a16946ac935f31560ea65a6126eec5bd2a6ff"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/hotspots_2015/hotspots_gcc_nem2020.parquet",
+      "file": "chennai-flood-history/hotspots_2015/hotspots_gcc_nem2020.parquet",
+      "bytes": 12777,
+      "sha256": "bbdb44158a0920305e2c88f0401379aee425e2829dc0d5a3a42a11db0452f758"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/hotspots_2015/hotspots_irs_2005.parquet",
+      "file": "chennai-flood-history/hotspots_2015/hotspots_irs_2005.parquet",
+      "bytes": 20893,
+      "sha256": "2c191892b0e05c739a6e66b103dfa60b76bc15cc9445c25446c0d3bd33ec9730"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/hotspots_2015/hotspots_kancheepuram_2015.parquet",
+      "file": "chennai-flood-history/hotspots_2015/hotspots_kancheepuram_2015.parquet",
+      "bytes": 27217,
+      "sha256": "1fa616cdf8490fffc45a5fca9fabcf0b781d22987880b3f0433126a6bdba1fb1"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/hotspots_2015/hotspots_tiruvallur_2015.parquet",
+      "file": "chennai-flood-history/hotspots_2015/hotspots_tiruvallur_2015.parquet",
+      "bytes": 24956,
+      "sha256": "2c876a012e84274e2ce25ad387f82e7eb86e166737d492b2496c6cd7c62071fb"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/hotspots_2015/hotspots_vellore_2015.parquet",
+      "file": "chennai-flood-history/hotspots_2015/hotspots_vellore_2015.parquet",
+      "bytes": 13542,
+      "sha256": "45b0470ffd7880e741102d74d3d662f5dd8fa3392abab141f9873b93434e9e4b"
+    },
+    {
+      "url": "https://huggingface.co/datasets/CashlessConsumer/chennai-flood-history/resolve/60074d53fc80d5b61e07494d4c52cebafe242198/wards/ward_waterdepth_minmax.parquet",
+      "file": "chennai-flood-history/wards/ward_waterdepth_minmax.parquet",
+      "bytes": 1233965,
+      "sha256": "1a24ebe883bccd737d88b82437d6db4d9e4afa512bf8d50576825deb33d44e80"
+    }
+  ],
+  "tables": [
+    {
+      "file": "chennai-flood-monitor-transactions/data/awlr_waterlevel.parquet",
+      "rows": 385950,
+      "date_coverage": {
+        "date": {
+          "parsed": 385949,
+          "min": "2021-09-05 00:00:00+00:00",
+          "max": "2026-08-16 00:00:00+00:00",
+          "by_year": {
+            "2021.0": 2,
+            "2022.0": 2,
+            "2023.0": 45809,
+            "2024.0": 134264,
+            "2025.0": 154924,
+            "2026.0": 50948
+          }
+        },
+        "combined_datetime": {
+          "parsed": 385949,
+          "min": "2021-09-06 14:00:00+00:00",
+          "max": "2026-08-17 07:15:00+00:00",
+          "by_year": {
+            "2021.0": 2,
+            "2022.0": 2,
+            "2023.0": 45520,
+            "2024.0": 134183,
+            "2025.0": 155059,
+            "2026.0": 51183
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {
+        "water_level": {
+          "numeric": 0,
+          "zero": 0,
+          "negative": 0,
+          "min": null,
+          "max": null
+        },
+        "waterlevel": {
+          "numeric": 383620,
+          "zero": 18383,
+          "negative": 0,
+          "min": 0.0,
+          "max": 1000.0
+        }
+      },
+      "station_count": 49,
+      "duplicate_station_date_time": 0,
+      "combined_vs_date_day_offsets": {
+        "1.0": 314222,
+        "0.0": 71727,
+        "nan": 1
+      }
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/data/aws_arg_rain_met.parquet",
+      "rows": 669147,
+      "date_coverage": {
+        "date": {
+          "parsed": 669147,
+          "min": "2012-09-30 00:00:00+00:00",
+          "max": "2022-09-06 00:00:00+00:00",
+          "by_year": {
+            "2012": 7,
+            "2017": 818,
+            "2018": 223538,
+            "2019": 134839,
+            "2020": 228480,
+            "2021": 81462,
+            "2022": 3
+          }
+        },
+        "datetemp": {
+          "parsed": 669147,
+          "min": "2012-09-30 00:00:00+00:00",
+          "max": "2022-09-06 00:00:00+00:00",
+          "by_year": {
+            "2012": 7,
+            "2017": 818,
+            "2018": 223538,
+            "2019": 134839,
+            "2020": 228480,
+            "2021": 81462,
+            "2022": 3
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {
+        "rainfall": {
+          "numeric": 669128,
+          "zero": 584233,
+          "negative": 0,
+          "min": 0.0,
+          "max": 768.0
+        }
+      },
+      "station_count": 9,
+      "duplicate_station_date_time": 3033
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/data/srg_rain.parquet",
+      "rows": 662904,
+      "date_coverage": {
+        "date": {
+          "parsed": 662904,
+          "min": "1975-12-31 00:00:00+00:00",
+          "max": "2026-02-17 00:00:00+00:00",
+          "by_year": {
+            "1975": 2,
+            "1976": 2014,
+            "1984": 15,
+            "1985": 5460,
+            "1987": 53,
+            "1988": 19398,
+            "1989": 19345,
+            "1990": 19345,
+            "1991": 19345,
+            "1992": 19398,
+            "1993": 19345,
+            "1994": 19345,
+            "1995": 19345,
+            "1996": 19398,
+            "1997": 19345,
+            "1998": 19345,
+            "1999": 19345,
+            "2000": 19398,
+            "2001": 19345,
+            "2002": 19345,
+            "2003": 19345,
+            "2004": 19398,
+            "2005": 19345,
+            "2006": 19345,
+            "2007": 19345,
+            "2008": 19398,
+            "2009": 19345,
+            "2010": 19345,
+            "2011": 19345,
+            "2012": 19398,
+            "2013": 19345,
+            "2014": 19345,
+            "2015": 19345,
+            "2016": 19398,
+            "2017": 19345,
+            "2018": 19345,
+            "2019": 19292,
+            "2021": 20,
+            "2023": 4048,
+            "2024": 14883,
+            "2025": 15078,
+            "2026": 1920
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 11688,
+          "columns": [
+            "srgid"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {
+        "rainfall": {
+          "numeric": 662904,
+          "zero": 523733,
+          "negative": 0,
+          "min": 0.0,
+          "max": 494.2
+        }
+      },
+      "station_count": 111,
+      "duplicate_station_date_time": 0
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/administrativetable.parquet",
+      "rows": 20,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/agro_stations.parquet",
+      "rows": 1,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/arg_iitm_existing.parquet",
+      "rows": 9,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/arg_proposed.parquet",
+      "rows": 87,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 2,
+          "columns": [
+            "name"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/arg_registry_328.parquet",
+      "rows": 328,
+      "date_coverage": {
+        "date_of_establishment": {
+          "parsed": 328,
+          "min": "2018-01-02 00:00:00+00:00",
+          "max": "2026-08-26 00:00:00+00:00",
+          "by_year": {
+            "2018": 9,
+            "2020": 4,
+            "2021": 34,
+            "2022": 1,
+            "2023": 19,
+            "2024": 142,
+            "2025": 104,
+            "2026": 15
+          }
+        },
+        "equipment_date_of_installation": {
+          "parsed": 0,
+          "min": "NaT",
+          "max": "NaT",
+          "by_year": {}
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 5,
+          "columns": [
+            "stationname",
+            "taluk",
+            "address"
+          ]
+        },
+        "Tambaram": {
+          "rows": 3,
+          "columns": [
+            "stationname",
+            "taluk",
+            "argid",
+            "location"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_44.parquet",
+      "rows": 44,
+      "date_coverage": {
+        "installationdate": {
+          "parsed": 0,
+          "min": "NaT",
+          "max": "NaT",
+          "by_year": {}
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_gcc_existing_46.parquet",
+      "rows": 46,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_iitm_existing.parquet",
+      "rows": 6,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_plank.parquet",
+      "rows": 8,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_proposed_78.parquet",
+      "rows": 78,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 2,
+          "columns": [
+            "name"
+          ]
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "name"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_proposed_basin.parquet",
+      "rows": 139,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 2,
+          "columns": [
+            "name"
+          ]
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "name"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_proposed_basin_139.parquet",
+      "rows": 139,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 2,
+          "columns": [
+            "name"
+          ]
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "name"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_radarpressureultrasonic.parquet",
+      "rows": 7,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_shaftencoder.parquet",
+      "rows": 3,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {
+        "maximum_water_level": {
+          "numeric": 0,
+          "zero": 0,
+          "negative": 0,
+          "min": null,
+          "max": null
+        }
+      }
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/awlr_stations_121.parquet",
+      "rows": 121,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 1,
+          "columns": [
+            "site_name",
+            "river",
+            "location"
+          ]
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "location"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/aws_iitm_existing.parquet",
+      "rows": 6,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/aws_proposed.parquet",
+      "rows": 13,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/aws_registry.parquet",
+      "rows": 39,
+      "date_coverage": {
+        "establishdate": {
+          "parsed": 38,
+          "min": "2018-01-01 00:00:00+00:00",
+          "max": "2026-08-26 00:00:00+00:00",
+          "by_year": {
+            "2018.0": 8,
+            "2021.0": 2,
+            "2023.0": 1,
+            "2024.0": 3,
+            "2025.0": 14,
+            "2026.0": 10
+          }
+        },
+        "dateofinstallationequipment": {
+          "parsed": 0,
+          "min": "NaT",
+          "max": "NaT",
+          "by_year": {}
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/aws_registry_39.parquet",
+      "rows": 39,
+      "date_coverage": {
+        "establishdate": {
+          "parsed": 38,
+          "min": "2018-01-01 00:00:00+00:00",
+          "max": "2026-08-26 00:00:00+00:00",
+          "by_year": {
+            "2018.0": 8,
+            "2021.0": 2,
+            "2023.0": 1,
+            "2024.0": 3,
+            "2025.0": 14,
+            "2026.0": 10
+          }
+        },
+        "dateofinstallationequipment": {
+          "parsed": 0,
+          "min": "NaT",
+          "max": "NaT",
+          "by_year": {}
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/aws_registry_sql.parquet",
+      "rows": 38,
+      "date_coverage": {
+        "datetime": {
+          "parsed": 38,
+          "min": "2023-08-11 18:30:00+00:00",
+          "max": "2023-08-11 18:30:00+00:00",
+          "by_year": {
+            "2023": 38
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {
+        "rainfall": {
+          "numeric": 6,
+          "zero": 5,
+          "negative": 0,
+          "min": 0.0,
+          "max": 1.0
+        }
+      }
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/dgps_tanks.parquet",
+      "rows": 267,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/gate_sensors_proposed.parquet",
+      "rows": 5,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/groundwater_stations.parquet",
+      "rows": 0,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/hydrological_stations.parquet",
+      "rows": 0,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/meteorological_stations.parquet",
+      "rows": 0,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/raingauge_proposed.parquet",
+      "rows": 0,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/raingauge_stations_63.parquet",
+      "rows": 63,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "station_name"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/srg.parquet",
+      "rows": 51,
+      "date_coverage": {
+        "establish_date": {
+          "parsed": 51,
+          "min": "2023-09-25 00:00:00+00:00",
+          "max": "2023-09-25 00:00:00+00:00",
+          "by_year": {
+            "2023": 51
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "station_name",
+            "taluk"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/srg_pwd_existing_53.parquet",
+      "rows": 53,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "stationname"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/srg_registry.parquet",
+      "rows": 51,
+      "date_coverage": {
+        "datetime": {
+          "parsed": 51,
+          "min": "2025-11-30 18:30:00+00:00",
+          "max": "2026-08-16 18:30:00+00:00",
+          "by_year": {
+            "2025": 11,
+            "2026": 40
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "stationname"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {
+        "rainfall": {
+          "numeric": 51,
+          "zero": 40,
+          "negative": 0,
+          "min": 0.0,
+          "max": 2.72
+        }
+      }
+    },
+    {
+      "file": "chennai-flood-monitor-transactions/stations/tidal_stations.parquet",
+      "rows": 0,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/crowdsourced/reports_scrubbed.parquet",
+      "rows": 173,
+      "date_coverage": {
+        "imagetimestamp": {
+          "parsed": 173,
+          "min": "2022-11-14 11:59:49+00:00",
+          "max": "2025-12-04 03:00:18+00:00",
+          "by_year": {
+            "2022": 1,
+            "2023": 2,
+            "2024": 1,
+            "2025": 169
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/flood_extents/irs_flood_extent_2005.parquet",
+      "rows": 235,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/flood_extents/nrsc_flood_extent_2015.parquet",
+      "rows": 4001,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/floodwarnings.parquet",
+      "rows": 4,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 1,
+          "columns": [
+            "name"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/hotspots_2015/hotspots_gcc_2015.parquet",
+      "rows": 327,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 2,
+          "columns": [
+            "location"
+          ]
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/hotspots_2015/hotspots_gcc_nem2020.parquet",
+      "rows": 53,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/hotspots_2015/hotspots_irs_2005.parquet",
+      "rows": 200,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 1,
+          "columns": [
+            "location"
+          ]
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/hotspots_2015/hotspots_kancheepuram_2015.parquet",
+      "rows": 139,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 2,
+          "columns": [
+            "escape_route"
+          ]
+        },
+        "Tambaram": {
+          "rows": 23,
+          "columns": [
+            "taluka",
+            "escape_route"
+          ]
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/hotspots_2015/hotspots_tiruvallur_2015.parquet",
+      "rows": 200,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/hotspots_2015/hotspots_vellore_2015.parquet",
+      "rows": 29,
+      "date_coverage": {},
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    },
+    {
+      "file": "chennai-flood-history/wards/ward_waterdepth_minmax.parquet",
+      "rows": 200,
+      "date_coverage": {
+        "datetime": {
+          "parsed": 200,
+          "min": "2021-08-11 05:38:55.801000+00:00",
+          "max": "2021-08-11 05:38:55.801000+00:00",
+          "by_year": {
+            "2021": 200
+          }
+        }
+      },
+      "area_text_matches": {
+        "Velachery": {
+          "rows": 0,
+          "columns": []
+        },
+        "Tambaram": {
+          "rows": 0,
+          "columns": []
+        },
+        "Chromepet": {
+          "rows": 0,
+          "columns": []
+        }
+      },
+      "numeric_summary": {}
+    }
+  ],
+  "limitations": [
+    "Third-party historical mirrors; not live feeds.",
+    "Text matches do not establish geographical coverage or station joins.",
+    "Water-level datum and rainfall accumulation interval require source validation.",
+    "Null is unknown, not zero. No flood labels or NGO demand are inferred.",
+    "Original publisher reuse terms remain to be established."
+  ]
+}

@@ -1,0 +1,4 @@
+# Optional offline dataset audit / benchmark dependencies; not needed by the web app.
+pandas>=2.2,<3
+pyarrow>=17,<27
+scikit-learn>=1.5,<2
