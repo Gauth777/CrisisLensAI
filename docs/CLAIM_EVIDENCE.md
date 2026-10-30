@@ -1,6 +1,6 @@
 # Claim evidence and action briefs
 
-CrisisLensAI now makes two fixed model calls: first assess individual claims against supplied source records, then prepare actions linked to those claims. It does not run autonomous agents or dispatch resources.
+CrisisLensAI now makes three fixed model calls: propose claims, separately review their meaning against the complete source bundle, then draft an action brief. The application replaces generated action wording and the summary with controlled templates. It does not run autonomous agents or dispatch resources.
 
 ## User flow
 
@@ -27,7 +27,7 @@ The model still interprets whether a passage supports or contradicts a claim. Ex
 
 Retrieval remains the existing fixed weather/news/official-warning collection and reviewed operational records. This change does not add unrestricted web search. Historical evidence uses the six curated cases in `research/cfm/incidents.json`; passages are explicitly labeled curated notes, not quotations from full articles. Those cases still require human adjudication and are not training labels.
 
-Provider or schema failures do not produce a fabricated fallback brief. Two sequential calls can take longer than the previous single-call flow; the frontend allows up to 210 seconds.
+Provider or schema failures do not produce a fabricated fallback brief. Three sequential calls can take longer than the previous single-call flow; the frontend allows up to 300 seconds.
 
 ## Evaluate with the configured Groq key
 
@@ -37,10 +37,16 @@ From the repository root, with the backend environment configured:
 python evaluate_evidence.py --case chromepet-2021
 ```
 
-This makes up to three real model calls: one unaided answer and the two-stage evidence pipeline. It writes `runtime/evidence-comparison.json` and a blank `.review.csv`. Use `--case all` for all six cases (up to 18 calls). There is no synthetic fallback, and failures are recorded without raw credential-bearing errors.
+This makes up to four real model calls: one unaided answer and the three-stage evidence pipeline. It writes `runtime/evidence-comparison.json` and a blank `.review.csv`. Use `--case all` for all six cases (up to 24 calls). There is no synthetic fallback, and failures are recorded without raw credential-bearing errors.
 
 Have a reviewer inspect the original linked sources and record unsupported claims, missed conflicts, wrong time/location and unsupported actions for each variant. Latency is measured automatically; factual accuracy remains unset until adjudication. This is a small historical comparison, not a representative disaster-response benchmark or proof of operational readiness.
 
 ## Automated validation
 
 `tests/test_evidence.py` exercises citation integrity, stale and wrong-scope evidence, source eligibility, conflicts, duplicates and action gates. Browser coverage exercises claim expansion, historical separation, mobile layout and the approval/export workflow with a scripted provider. Scripted checks establish software behavior, not live model accuracy.
+
+## Adversarial hardening
+
+Known historical case conflicts force a comparison status and retain the related source records even if both model passes omit the disagreement. This is a conservative case-level hold, not a determination that every detail conflicts. The semantic reviewer must cover every claim exactly once; missing coverage, invalid schema or unknown source IDs fail closed. It cannot promote stale or otherwise ineligible evidence. A negative review withholds support and explains why.
+
+Operational action titles, explanations and briefing summaries use application-controlled wording for check, readiness and bounded-proposal review. A model-supplied intent label cannot expose arbitrary dispatch instructions or quantities in these fields. Claim and evidence explanations remain model-interpreted content. The separate review uses the same configured model, so errors may be correlated; it is not independent corroboration. Scripted adversarial tests validate enforcement, not the probability of the live model detecting unsupported claims.

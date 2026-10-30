@@ -1,4 +1,4 @@
-"""Compare unaided Groq output with the two-stage evidence pipeline on historical cases.
+"""Compare unaided Groq output with the three-stage evidence pipeline on historical cases.
 
 Real provider calls; no synthetic fallback. Results require human factual review.
 """
@@ -56,7 +56,7 @@ def run(provider,case):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--case',default='chromepet-2021',help='Case ID, or all (up to 18 model calls)')
+    parser.add_argument('--case',default='chromepet-2021',help='Case ID, or all (up to 24 model calls)')
     parser.add_argument('--output',type=Path,default=ROOT/'runtime/evidence-comparison.json')
     args=parser.parse_args()
     load_environment()
@@ -67,7 +67,7 @@ def main():
     if not cases:parser.error('Unknown case ID')
     provider=build_provider('groq')
     report={'run_at':datetime.now(timezone.utc).isoformat(),'model':provider.model,
-        'comparison':'Same model: unaided generation versus source-backed two-stage pipeline',
+        'comparison':'Same model: unaided generation versus source-backed three-stage pipeline',
         'factual_accuracy':None,'notes':['Not a statistically representative benchmark; six cases in four event groups.',
          'Source notes are assistant-curated and not independently adjudicated ground truth.',
          'Only unaided output is raw; pipeline output includes deterministic gates.',

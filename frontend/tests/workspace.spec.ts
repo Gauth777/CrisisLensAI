@@ -31,7 +31,7 @@ test("complete real API workflow: submit, review, generate, save, reload, approv
   await drawer.getByLabel("Drinking water quantity").fill("50");
   await drawer.getByLabel("Available volunteers").fill("6");
   await drawer.getByRole("button",{name:"Generate evidence-based steps"}).click();
-  await expect(drawer.getByRole("heading",{name:"TEST: confirm receipt before preparing supplies"})).toBeVisible();
+  await expect(drawer.getByRole("heading",{name:"Review the evidence and receiving arrangements"})).toBeVisible();
   await drawer.getByText("Why? Check the evidence",{exact:true}).click();
   await expect(drawer).toContainText("Coordinator-reviewed field report");
   await drawer.getByRole("button",{name:"Save draft plan"}).click();

@@ -26,6 +26,8 @@ class Provider:
     def __init__(self,claims,action=None):self.claims=claims;self.action=action;self.calls=0
     def generate_json(self,**kwargs):
         self.calls+=1
+        if 'reviews' in kwargs['output_schema']['properties']:
+            return {'reviews':[{'claim_id':c['id'],'verdict':'supported' if len(c['evidence'])<2 else 'conflicting','reason':'Scripted semantic review for guard testing.','omitted_source_ids':[]} for c in self.claims]}
         if self.calls==1:return {'claims':deepcopy(self.claims)}
         return {'location':'Velachery','headline':'Respond to the request','answer':'Prepare the requested supplies.',
           'claims':[],'recommendations':[self.action or {'title':'Confirm receiving time','explanation':'Agree when the site contact can receive help.','source_ids':['F1'],'claim_ids':['C1'],'intent':'check'}],
@@ -68,7 +70,7 @@ def test_repeated_text_does_not_add_another_evidence_vote():
 def test_response_requires_reviewed_demand_and_quantity_bounds():
     s=source();p=Provider([claim(s)],{'title':'Send water','explanation':'Supply the request.','source_ids':['F1'],'claim_ids':['C1'],'intent':'respond'})
     result,assessment=evidence_brief(p,Q,bundle(s))
-    assert p.calls==2 and result.recommendations[0].intent=='check'
+    assert p.calls==3 and result.recommendations[0].intent=='check'
     assert result.supplies==[]
 
 def test_action_cannot_cite_unassessed_source():
@@ -96,3 +98,54 @@ def test_rejected_or_pending_field_reports_are_leads_not_reviewed_sources():
        'needs':'Check access','status':'reviewed','pending_updates':1,'observed_at':NOW.isoformat(),
        'submitted_at':NOW.isoformat()}
     assert report_sources({'reports':[r]},'one')[0]['content_scope']=='unverified_input'
+
+@pytest.mark.parametrize('intent',['check','prepare','respond'])
+def test_dispatch_text_cannot_bypass_policy_with_intent_label(intent):
+    s=source()
+    action={'title':'Dispatch 500 water kits immediately','explanation':'Send volunteers through the flooded road now.',
+        'source_ids':['F1'],'claim_ids':['C1'],'intent':intent}
+    result,_=evidence_brief(Provider([claim(s)],action),Q,bundle(s))
+    public_text=result.model_dump_json()
+    assert '500' not in public_text and 'through the flooded road' not in public_text
+    assert all(a.title!='Dispatch 500 water kits immediately' for a in result.recommendations)
+
+
+def test_real_passage_does_not_override_semantic_rejection():
+    s=source();c=claim(s,statement='Fifty people are trapped and need helicopter evacuation.')
+    class RejectUnsupported(Provider):
+        def generate_json(self,**kwargs):
+            if 'reviews' in kwargs['output_schema']['properties']:
+                return {'reviews':[{'claim_id':'C1','verdict':'not_established',
+                    'reason':'Waterlogging does not establish trapped people, a count or helicopter need.', 'omitted_source_ids':[]}]}
+            return super().generate_json(**kwargs)
+    r=assess(RejectUnsupported([c]),Q,bundle(s),NOW)['claims'][0]
+    assert r['status']=='check_needed' and r['label']=='Check this detail'
+    assert 'helicopter' in r['explanation']
+
+
+def test_known_historical_conflict_survives_both_models_omitting_it():
+    pair=[s for s in historical_sources('Chromepet') if s['case_id']=='chromepet-2021']
+    c=claim(pair[0],timeframe='historical',statement='Hospital wards flooded in 2021.')
+    q=Q.model_copy(update={'location':'Chromepet'})
+    r=assess(Provider([c]),q,bundle(*pair),NOW)['claims'][0]
+    assert r['status']=='conflicting'
+    assert {e['source_id'] for e in r['evidence']}=={s['id'] for s in pair}
+
+
+@pytest.mark.parametrize('reviews',[
+    [],
+    [{'claim_id':'C99','verdict':'supported','reason':'Wrong claim.','omitted_source_ids':[]}],
+    [{'claim_id':'C1','verdict':'supported','reason':'Invented source.','omitted_source_ids':['FAKE']}],
+])
+def test_incomplete_or_fabricated_semantic_review_fails_closed(reviews):
+    s=source()
+    class BadReview(Provider):
+        def generate_json(self,**kwargs):
+            if 'reviews' in kwargs['output_schema']['properties']:return {'reviews':reviews}
+            return super().generate_json(**kwargs)
+    with pytest.raises(ValueError):assess(BadReview([claim(s)]),Q,bundle(s),NOW)
+
+
+def test_semantic_reviewer_cannot_promote_stale_evidence():
+    s=source(published_at=(NOW-timedelta(days=10)).isoformat())
+    assert assess(Provider([claim(s)]),Q,bundle(s),NOW)['claims'][0]['status']=='check_needed'

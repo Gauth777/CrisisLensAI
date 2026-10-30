@@ -25,6 +25,8 @@ if __name__ == "__main__":
         model="browser-test-model"
         def generate_json(self,**kwargs):
             data=json.loads(kwargs["user_prompt"].split('\n',1)[1])
+            if 'reviews' in kwargs['output_schema']['properties']:
+                return {'reviews':[{'claim_id':c['id'],'verdict':'supported','reason':'TEST ONLY scripted semantic check.','omitted_source_ids':[]} for c in data['claims']]}
             field=next((s for s in data["sources"] if s["kind"]=="field_report"),None)
             if 'headline' not in kwargs['output_schema']['properties']:
                 passage=field['excerpt'] if field else ''

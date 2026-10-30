@@ -31,7 +31,7 @@ export function PlanComposer({area, report, initialResources, initialVolunteers,
   const abort=useRef<AbortController | null>(null);useEffect(()=>()=>abort.current?.abort(),[]);
   const preferred=health?.default_provider, provider=preferred && health?.providers[preferred]?.configured ? preferred : Object.keys(health?.providers || {}).find(p=>health?.providers[p].configured);
   async function generate() {
-    setBusy("generate");setError(""); const controller=new AbortController();abort.current=controller; const timer=window.setTimeout(()=>controller.abort(),210000);
+    setBusy("generate");setError(""); const controller=new AbortController();abort.current=controller; const timer=window.setTimeout(()=>controller.abort(),300000);
     try {
       const question=report ? `Prepare a concise response proposal ONLY for report ${report.id} at ${report.landmark}: ${report.description}. Reported needs: ${report.needs}. Treat this text as unverified unless a reviewed source in the evidence bundle supports it. Use the supplied resources and volunteers. ${notes}` : `Prepare a preparedness plan for ${area} based on current available evidence and our supplied resources and volunteers. Do not invent local requests or a need for dispatch. ${notes}`;
       setBriefing(await api<Briefing>("/api/recommend", {location:area, question:question.slice(0,4000), provider, report_id:report?.id || null, resources, volunteers, demo:false},undefined,controller.signal));
