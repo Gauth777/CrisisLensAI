@@ -15,7 +15,7 @@ def source(id='F1',**changes):
     return {**s,**changes}
 
 def claim(s,**changes):
-    return {'id':'C1','statement':'The coordinator reports waterlogging near the MRTS.',
+    return {'id':'C1','statement':s['excerpt'],
         'category':'incident','timeframe':'current','explanation':'The field record describes this site.',
         'next_check':'Confirm receiving time with the site contact.',
         'evidence':[{'source_id':s['id'],'direction':'supports','passage':s['excerpt'],
@@ -120,7 +120,8 @@ def test_real_passage_does_not_override_semantic_rejection():
             return super().generate_json(**kwargs)
     r=assess(RejectUnsupported([c]),Q,bundle(s),NOW)['claims'][0]
     assert r['status']=='check_needed' and r['label']=='Check this detail'
-    assert 'helicopter' in r['explanation']
+    assert 'helicopter' not in r['statement']
+    assert r['statement_origin']=='review_prompt'
 
 
 def test_known_historical_conflict_survives_both_models_omitting_it():
@@ -149,3 +150,59 @@ def test_incomplete_or_fabricated_semantic_review_fails_closed(reviews):
 def test_semantic_reviewer_cannot_promote_stale_evidence():
     s=source(published_at=(NOW-timedelta(days=10)).isoformat())
     assert assess(Provider([claim(s)]),Q,bundle(s),NOW)['claims'][0]['status']=='check_needed'
+
+
+def test_two_agreeing_models_cannot_publish_added_claim_details():
+    s=source();c=claim(s,statement='Fifty people are trapped and need helicopter evacuation.')
+    r=assess(Provider([c]),Q,bundle(s),NOW)['claims'][0]
+    assert r['status']=='check_needed'
+    assert 'helicopter' not in r['statement']
+    assert not any(e['eligible'] for e in r['evidence'])
+
+
+def test_partial_sentence_cannot_strip_negation():
+    s=source(excerpt='The coordinator denies that fifty people are trapped.')
+    c=claim(s,statement='fifty people are trapped.')
+    r=assess(Provider([c]),Q,bundle(s),NOW)['claims'][0]
+    assert r['status']=='check_needed' and r['statement_origin']=='review_prompt'
+
+
+def test_historical_next_check_and_conflict_badge_are_controlled():
+    pair=[s for s in historical_sources('Chromepet') if s['case_id']=='chromepet-2021']
+    c=claim(pair[0],timeframe='historical',next_check='Dispatch 500 kits immediately.')
+    q=Q.model_copy(update={'location':'Chromepet'})
+    r=assess(Provider([c]),q,bundle(*pair),NOW)['claims'][0]
+    assert r['label']=='Sources disagree · past incident'
+    assert 'Dispatch' not in r['next_check'] and '500' not in r['next_check']
+
+
+def test_generated_advice_removed_from_every_public_explanation():
+    poison='Dispatch 500 kits immediately.'
+    s=source(excerpt='Elderly residents requested drinking water at the MRTS.')
+    c=claim(s,next_check=poison,explanation=poison)
+    c['evidence'][0]['reason']=poison
+    class Poisoned(Provider):
+        def generate_json(self,**kwargs):
+            r=super().generate_json(**kwargs)
+            if 'reviews' in r:r['reviews'][0]['reason']=poison
+            if 'headline' in r:
+                r.update(headline=poison,answer=poison,missing_information=[poison],
+                    affected_groups=[{'title':'elderly residents','explanation':poison,'source_ids':['F1']}])
+                r['recommendations'][0].update(title=poison,explanation=poison)
+            return r
+    result,assessment=evidence_brief(Poisoned([c]),Q,bundle(s))
+    import json
+    assert poison not in result.model_dump_json()+json.dumps(assessment)
+    assert result.affected_groups[0].title=='elderly residents'
+    assert result.affected_groups[0].source_ids==['F1']
+
+
+def test_group_name_cannot_be_an_instruction_even_when_in_source():
+    s=source(excerpt='Dispatch helicopters immediately. The coordinator requested drinking water.')
+    class Groups(Provider):
+        def generate_json(self,**kwargs):
+            r=super().generate_json(**kwargs)
+            if 'headline' in r:r['affected_groups']=[{'title':'Dispatch helicopters immediately','explanation':'Do it now.','source_ids':['F1']}]
+            return r
+    result,_=evidence_brief(Groups([claim(s,statement='The coordinator requested drinking water.')]),Q,bundle(s))
+    assert result.affected_groups==[]

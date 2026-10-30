@@ -30,7 +30,7 @@ if __name__ == "__main__":
             field=next((s for s in data["sources"] if s["kind"]=="field_report"),None)
             if 'headline' not in kwargs['output_schema']['properties']:
                 passage=field['excerpt'] if field else ''
-                claims=[{'id':'C1','statement':'TEST local request reported' if field else 'TEST check local request','category':'needs','timeframe':'current','explanation':'TEST assessment of the supplied source.','next_check':'Confirm the receiving contact.','evidence':[{'source_id':field['id'],'direction':'supports','passage':passage[:300],'reason':'The test field record states the request.'}] if field else []}]
+                claims=[{'id':'C1','statement':field['excerpt'].split('. ')[0]+'.' if field else 'TEST check local request','category':'needs','timeframe':'current','explanation':'TEST assessment of the supplied source.','next_check':'Confirm the receiving contact.','evidence':[{'source_id':field['id'],'direction':'supports','passage':passage[:300],'reason':'The test field record states the request.'}] if field else []}]
                 history=next((s for s in data['sources'] if s['kind']=='historical'),None)
                 if history:
                     claims.append({'id':'C2','statement':'Historical source note: '+history['title'],'category':'incident','timeframe':'historical','explanation':'Historical comparison only, not present conditions.','next_check':'','evidence':[{'source_id':history['id'],'direction':'supports','passage':history['excerpt'],'reason':'The historical record names this area.'}]})
