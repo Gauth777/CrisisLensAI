@@ -14,6 +14,9 @@ test('claim passages precede action brief and historical comparisons stay separa
  await expect(panel.locator('blockquote').first()).toContainText('TEST ONLY: site coordinator reports');
  await expect(panel).toContainText('Supports this detail');
  await expect(panel).toContainText('Based on C1');
+ await expect(panel.locator('.resource-bounds')).toContainText('Current access is not recorded');
+ await expect(panel.locator('.resource-bounds')).toContainText('Current demand status is not recorded');
+ await expect(panel).toContainText('Confirm access to the selected site');
  await panel.getByText(/Past incidents ·/).click();
  await expect(panel).toContainText("Historical context, separate from today's conditions.");
  await page.screenshot({path:info.outputPath('claim-evidence-desktop.png'),fullPage:true});

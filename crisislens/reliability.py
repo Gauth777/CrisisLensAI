@@ -64,7 +64,21 @@ def resource_check(report, available):
         amount = min(need, stock[kind]) if usable else None
         rows.append({"kind": kind, "unit": UNITS[kind], "requested": need, "available": stock[kind],
                      "suggested_max": amount, "uncovered": max(0, need-stock[kind]) if usable else None})
-    return {"status": "bounded_proposal" if usable and rows else "hold_for_check",
+    missing = list((report or {}).get("missing_checks", []))
+    if not report:
+        missing.append("No current selected report")
+    else:
+        if report.get("access_status", "unknown") == "unknown":
+            missing.append("Current access is not recorded")
+        if report.get("demand_status", "unknown") == "unknown":
+            missing.append("Current demand status is not recorded")
+        if not recorded:
+            missing.append("Requested quantities are not recorded")
+    return {"report_id": (report or {}).get("id"),
+            "source_id": "F"+report["id"] if report else None,
+            "access_status": (report or {}).get("access_status", "unknown"),
+            "demand_status": (report or {}).get("demand_status", "unknown"),
+            "status": "bounded_proposal" if usable and rows else "hold_for_check",
             "rows": rows, "conflicts": (report or {}).get("conflicts", []),
-            "missing_checks": (report or {}).get("missing_checks", ["No current selected report"]),
+            "missing_checks": list(dict.fromkeys(missing)),
             "note": "Per-request upper bounds, not allocations. Check contact, access and receiving time. No stock is reserved."}

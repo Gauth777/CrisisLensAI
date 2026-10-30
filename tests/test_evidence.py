@@ -206,3 +206,29 @@ def test_group_name_cannot_be_an_instruction_even_when_in_source():
             return r
     result,_=evidence_brief(Groups([claim(s,statement='The coordinator requested drinking water.')]),Q,bundle(s))
     assert result.affected_groups==[]
+
+@pytest.mark.parametrize('source_id,kind,expected',[('F1','field_report','respond'),('F2','field_report','check'),('N1','news','check')])
+def test_response_requires_the_selected_request_evidence(source_id,kind,expected):
+    s=source(id=source_id,kind=kind,content_scope='feed_excerpt' if kind=='news' else 'reviewed_report')
+    ctx=bundle(s)
+    ctx['evidence_issues']={'report_id':'1','source_id':'F1','status':'bounded_proposal',
+        'access_status':'passable','demand_status':'needed','rows':[{'kind':'water'}],'missing_checks':[]}
+    action={'title':'Respond','explanation':'Review proposal.','source_ids':[source_id],'claim_ids':['C1'],'intent':'respond'}
+    result,_=evidence_brief(Provider([claim(s,category='needs')],action),Q,ctx)
+    assert result.recommendations[0].intent==expected
+
+@pytest.mark.parametrize('changes,title',[
+    ({'access_status':'blocked'},'Confirm an authorised access arrangement'),
+    ({'access_status':'unknown'},'Confirm access to the selected site'),
+    ({'demand_status':'not_needed'},'Recheck whether assistance is still needed'),
+    ({'demand_status':'unknown'},'Confirm remaining demand'),
+    ({'rows':[]},'Record the requested quantities'),
+    ({'conflicts':[{'report_id':'2'}]},'Resolve the differing reports'),
+])
+def test_followups_reflect_operational_conditions(changes,title):
+    s=source();ctx=bundle(s)
+    ctx['evidence_issues']={'report_id':'1','source_id':'F1','status':'hold_for_check',
+        'access_status':'passable','demand_status':'needed','rows':[{'kind':'water'}],**changes}
+    result,_=evidence_brief(Provider([claim(s,category='needs')]),Q,ctx)
+    assert title in [a.title for a in result.recommendations]
+    assert all(a.intent=='check' for a in result.recommendations)

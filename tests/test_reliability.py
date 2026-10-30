@@ -48,7 +48,9 @@ def test_benchmark_is_explicitly_not_model_accuracy():
     r=run_evaluation()
     assert r["total"]==10 and r["passed"]==10
     assert r["mode"]=="scripted_guardrail_test" and r["human_factual_accuracy"] is None
-    assert r["raw_claim_status_matches"]==1 and r["claim_status_matches"]==6
+    assert r["raw_claim_status_matches"] is None and r["claim_status_matches"]==6
+    assert r["dataset_version"]=="evidence-challenge-v2"
+    assert all(row["model_calls"]==3 and row["evidence_assessment"]["method"]=="source-passages-v3" for row in r["cases"][:6])
 
 
 @pytest.mark.parametrize("scenario",["conflict","incomplete"])
@@ -72,3 +74,13 @@ def test_scenarios_exercise_uncertainty(scenario):
 def test_duplicate_resource_categories_are_rejected():
     with pytest.raises(ValueError, match="one quantity"):
         PlanInput(location="Velachery", volunteers=2, resources=[{"kind":"water","quantity":80},{"kind":"water","quantity":80}])
+
+
+def test_provisional_quantity_preserves_request_identity_and_missing_checks():
+    report={'id':'selected','status':'reviewed','observed_at':utcnow().isoformat(),
+        'resources':[{'kind':'water','quantity':40}],'access_status':'unknown','demand_status':'unknown'}
+    check=resource_check(report,[{'kind':'water','quantity':50}])
+    assert check['report_id']=='selected' and check['source_id']=='Fselected'
+    assert check['rows'][0]['suggested_max']==40
+    assert 'Current access is not recorded' in check['missing_checks']
+    assert 'Current demand status is not recorded' in check['missing_checks']

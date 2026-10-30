@@ -3,7 +3,8 @@ from copy import deepcopy
 from datetime import datetime, timezone, timedelta
 from time import perf_counter
 from statistics import mean
-from .recommendations import recommend, RecommendationQuestion
+from .recommendations import RecommendationQuestion
+from .evidence import evidence_brief
 from .reliability import annotate_reports, resource_check
 
 
@@ -27,6 +28,16 @@ class ChallengeProvider:
         self.case = case
         self.raw = None
     def generate_json(self, **kwargs):
+        sources = self.case['sources']
+        if 'reviews' in kwargs['output_schema']['properties']:
+            return {'reviews':[{'claim_id':'C1','verdict':'supported','reason':'Scripted overconfident review.','omitted_source_ids':[]}]}
+        if 'headline' not in kwargs['output_schema']['properties']:
+            sentence = sources[0]['excerpt'].split('. ')[0] if sources else 'Water is needed at this site.'
+            if not sentence.endswith('.'): sentence += '.'
+            return {'claims':[{'id':'C1','statement':sentence,'category':'needs','timeframe':'current',
+                'explanation':'Scripted overconfident assessment.','next_check':'Check the site contact.',
+                'evidence':[{'source_id':sources[0]['id'],'direction':'supports','passage':sources[0]['excerpt'],
+                    'reason':'Scripted support.'}] if sources else []}]}
         self.raw = {"location": self.case["title"].split(":")[0], "headline": "Supplies requested", "answer": "The request is supported.",
             "claims": [{"statement": "The requested drinking water is needed at the site", "category": "needs", "status": "supported", "explanation": "Supported by the supplied record.", "source_ids": [s["id"] for s in self.case["sources"]]}],
             "recommendations": [], "supplies": [], "affected_groups": [], "missing_information": []}
@@ -38,17 +49,19 @@ def run_evaluation(provider=None):
     class Recorder:
         def __init__(self, engine):
             self.engine, self.raw = engine, None
+            self.outputs = []
         def generate_json(self, **kwargs):
             self.raw = deepcopy(self.engine.generate_json(**kwargs))
+            self.outputs.append(deepcopy(self.raw))
             return deepcopy(self.raw)
     for case in cases():
         engine = Recorder(provider or ChallengeProvider(case))
         context = {"sources": deepcopy(case["sources"]), "source_status": [], "coverage_note": "Synthetic evaluation, not a real incident.", "evidence_issues": case.get("issues", {})}
         started = perf_counter()
         try:
-            answer = recommend(engine, RecommendationQuestion(location=case["title"].split(":")[0], question="Evaluate only whether this specific water request is supported. Return exactly one needs claim. Do not infer a request from weather or unverified messages."), context)
+            answer, assessment = evidence_brief(engine, RecommendationQuestion(location=case["title"].split(":")[0], question="Evaluate only whether this specific water request is supported. Return exactly one needs claim. Do not infer a request from weather or unverified messages."), context)
             matched = len(answer.claims) == 1 and answer.claims[0].category == "needs" and answer.claims[0].status == case["expected"]
-            rows.append({"id": case["id"], "title": case["title"], "passed": matched, "expected": case["expected"], "actual": [c.status for c in answer.claims], "latency_ms": round((perf_counter()-started)*1000, 2), "output": answer.model_dump(), "raw_output": engine.raw, "sources": case["sources"], "evidence_issues": case.get("issues", {}), "raw_status_match": isinstance(engine.raw, dict) and len(engine.raw.get("claims", [])) == 1 and engine.raw["claims"][0].get("status") == case["expected"]})
+            rows.append({"id": case["id"], "title": case["title"], "passed": matched, "expected": case["expected"], "actual": [c.status for c in answer.claims], "latency_ms": round((perf_counter()-started)*1000, 2), "output": answer.model_dump(), "raw_output": engine.outputs, "evidence_assessment": assessment, "model_calls": len(engine.outputs), "sources": case["sources"], "evidence_issues": case.get("issues", {})})
         except Exception as exc:
             rows.append({"id": case["id"], "title": case["title"], "passed": False, "expected": case["expected"], "actual": "request_failed", "error_type": type(exc).__name__, "latency_ms": round((perf_counter()-started)*1000, 2)})
     now = datetime.now(timezone.utc)
@@ -63,4 +76,4 @@ def run_evaluation(provider=None):
         ("unknown-quantity", "Unknown quantities: do not invent supply counts", resource_check({**report, "resources": []}, [])["rows"] == []),
     ]:
         rows.append({"id": identifier, "title": title, "passed": passed, "expected": "rule holds", "actual": "rule holds" if passed else "rule failed", "latency_ms": None, "kind": "deterministic_rule"})
-    return {"run_at": now.isoformat(), "dataset_version": "evidence-challenge-v1", "mode": "live_model" if provider else "scripted_guardrail_test", "model": getattr(provider, "model", "scripted-adversarial-fixture"), "total": len(rows), "passed": sum(r["passed"] for r in rows), "claim_cases": 6, "raw_claim_status_matches": sum(r.get("raw_status_match", False) for r in rows[:6]), "claim_status_matches": sum(r["passed"] for r in rows[:6]), "mean_claim_pipeline_ms": round(mean(r["latency_ms"] for r in rows[:6]),2), "human_factual_accuracy": None, "limitations": "Synthetic author-labelled cases. These measure constrained claim-status agreement and safeguards, not real-world factual accuracy. Free-text reasoning and resource suitability need independent human scoring.", "cases": rows}
+    return {"run_at": now.isoformat(), "dataset_version": "evidence-challenge-v2", "mode": "live_model" if provider else "scripted_guardrail_test", "model": getattr(provider, "model", "scripted-adversarial-fixture"), "total": len(rows), "passed": sum(r["passed"] for r in rows), "claim_cases": 6, "raw_claim_status_matches": None, "claim_status_matches": sum(r["passed"] for r in rows[:6]), "mean_claim_pipeline_ms": round(mean(r["latency_ms"] for r in rows[:6]),2), "human_factual_accuracy": None, "limitations": "Synthetic author-labelled cases. These measure constrained claim-status agreement and safeguards, not real-world factual accuracy. Free-text reasoning and resource suitability need independent human scoring.", "cases": rows}

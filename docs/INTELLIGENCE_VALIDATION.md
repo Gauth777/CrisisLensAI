@@ -22,13 +22,13 @@ These are per-request upper bounds, not allocations or automatic dispatch. Multi
 
 ## Measurements you can reproduce
 
-Open **Our evidence** on the homepage. `/api/evaluation` executes the production recommendation guards and quantity checker against ten synthetic checks, with six deliberately overconfident canned claim outputs and four deterministic resource checks. It shows each expectation and result, with local processing latency. There is no provider/network latency in this run.
+Open **Our evidence** on the homepage. `/api/evaluation` executes the production recommendation guards and quantity checker against ten synthetic checks, with six three-stage scenarios using deliberately overconfident scripted model outputs and four deterministic resource checks. It shows each expectation and result, with local processing latency. There is no provider/network latency in this run.
 
 ```powershell
 python evaluate_intelligence.py
 ```
 
-The report is written to ignored `runtime/intelligence-evaluation.json`, with an accompanying `.review.csv` containing blank human-scoring columns. It includes the fixture sources, raw output, validated output, per-case latency, six constrained claim-status outcomes and four rule outcomes. Cases are author-labelled synthetic scenarios; neither this suite nor passing unit tests establish real-world model accuracy.
+The report is written to ignored `runtime/intelligence-evaluation.json`, with an accompanying `.review.csv` containing blank human-scoring columns. It includes the fixture sources, raw output, validated output, per-case latency, six constrained claim-status outcomes from the current evidence pipeline and four rule outcomes. Cases are author-labelled synthetic scenarios; neither this suite nor passing unit tests establish real-world model accuracy.
 
 To evaluate the configured provider against the same evidence challenge:
 
@@ -36,7 +36,7 @@ To evaluate the configured provider against the same evidence challenge:
 python evaluate_intelligence.py --provider groq --output runtime/groq-evaluation.json
 ```
 
-This makes six actual model calls using the backend key. It records request failures as failed cases, raw and post-validation claim-status matches separately, per-call latency including validation, and the full outputs for review. It does not use Field Lab's scripted briefings. `human_factual_accuracy` stays null until a separate review is performed. The application does not expose raw benchmark files publicly.
+This makes up to eighteen actual model calls using the backend key. It records request failures as failed cases, all three raw stage outputs and post-validation claim-status matches, per-call latency including validation, and the full outputs for review. It does not use Field Lab's scripted briefings. `human_factual_accuracy` stays null until a separate review is performed. The application does not expose raw benchmark files publicly.
 
 ## Human scoring protocol before claiming accuracy
 
@@ -62,3 +62,9 @@ Freeze an unseen evaluation set before changing prompts based on results. Includ
 5. Open **Our evidence** in live mode. Show the measured synthetic checks and explicitly explain the difference from live-model and human factual evaluation.
 
 Live reports, scenario data and benchmark fixtures remain separate. The system remains non-agentic: deterministic retrieval and checks, optional model synthesis, and human decisions.
+
+## Request-specific recommendations
+
+Resource checks now carry the selected report ID and field-source ID. A response proposal requires a supported current needs claim citing that exact field source, no unresolved operational checks, and a bounded proposal. A supported news story or another report cannot substitute for the selected request. Provisional quantities remain visible when access or demand is unknown, with explicit missing-check warnings beside them; the action brief requests those checks instead of proposing a response. Blocked access, no demand, conflicts and missing quantities each select specific application-controlled next steps. This does not reserve stock or replace coordinator approval.
+
+The public evidence panel uses `evidence-challenge-v2`: six scenarios call the current `evidence_brief` pipeline (assessment, semantic review and action brief), followed by four deterministic quantity rules. Raw stage outputs are retained for review, not reduced to a misleading first-pass accuracy score. These ten checks are a limited regression suite, not the entire test suite or live-model accuracy.

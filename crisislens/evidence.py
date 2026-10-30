@@ -318,6 +318,8 @@ def evidence_brief(provider, question, context):
         explanation=c['explanation'],source_ids=[l['source_id'] for l in c['evidence']]) for c in assessment['claims']]
     has_current_conflict = any(c['status']=='conflicting' and c['timeframe']=='current' for c in assessment['claims'])
     actions = []
+    issues = context.get('evidence_issues', {})
+    selected_source = issues.get('source_id')
     for item in result.recommendations[:3]:
         if any(cid not in by_id for cid in item.claim_ids):
             raise ValueError('Action references an unknown claim')
@@ -326,7 +328,10 @@ def evidence_brief(provider, question, context):
         if any(sid not in allowed_sources for sid in item.source_ids):
             raise ValueError('Action source is not linked to its assessed claims')
         grounded = bool(attached) and all(c['timeframe']=='current' and c['status']=='supported' for c in attached)
-        if item.intent=='respond' and (has_current_conflict or not grounded or context.get('evidence_issues',{}).get('status')!='bounded_proposal'
+        selected_need = any(c['category']=='needs' and any(
+            l['source_id']==selected_source and l['eligible'] and l['direction']=='supports'
+            and l['source_kind']=='field_report' for l in c['evidence']) for c in attached)
+        if item.intent=='respond' and (not selected_need or issues.get('missing_checks') or has_current_conflict or not grounded or context.get('evidence_issues',{}).get('status')!='bounded_proposal'
             or not any(c['category']=='needs' for c in attached)):
             actions.append(CitedItem(title='Confirm the receiving request', explanation='Ask the local coordinator for current needs, access and receiving time before allocating supplies.',source_ids=[],claim_ids=item.claim_ids,intent='check'))
         elif item.claim_ids:
@@ -338,6 +343,27 @@ def evidence_brief(provider, question, context):
                 title, explanation = 'Confirm the local request', 'Ask the site contact for observation time, access, remaining needs and receiving arrangements.'
             actions.append(CitedItem(title=title,explanation=explanation,
                 source_ids=item.source_ids,claim_ids=item.claim_ids,intent=item.intent))
+    # Operational conditions take precedence over a model-selected generic next step.
+    followups = []
+    if issues.get('conflicts') or has_current_conflict:
+        followups.append(('Resolve the differing reports', 'Compare dated accounts with the site contact before reviewing a supply proposal.'))
+    if issues.get('access_status')=='blocked':
+        followups.append(('Confirm an authorised access arrangement', 'Ask the responsible authority and receiving contact about access; keep the supply proposal on hold.'))
+    elif issues.get('report_id') and issues.get('access_status')=='unknown':
+        followups.append(('Confirm access to the selected site', 'Record current access restrictions with the site contact before reviewing a response.'))
+    if issues.get('demand_status')=='not_needed':
+        followups.append(('Recheck whether assistance is still needed', 'The selected report records no current demand; do not allocate against the old request.'))
+    elif issues.get('report_id') and issues.get('demand_status')=='unknown':
+        followups.append(('Confirm remaining demand', 'Ask the receiving contact what is still needed and update the selected report.'))
+    if issues.get('report_id') and not issues.get('rows'):
+        followups.append(('Record the requested quantities', 'Ask the receiving contact for quantities and units; do not infer them from rainfall or people counts.'))
+    if not issues.get('report_id'):
+        followups.append(('Select a current receiving request', 'Link a reviewed field request before calculating a supply proposal.'))
+    if followups:
+        actions = [CitedItem(title=t,explanation=e,
+            source_ids=[selected_source] if any(s['id']==selected_source for s in context['sources']) else [],
+            claim_ids=[c['id'] for c in assessment['claims'] if any(l['source_id']==selected_source for l in c['evidence'])],
+            intent='check') for t,e in followups]
     if not actions:
         actions=[CitedItem(title='Check the local request',explanation='Confirm the observation time, site access and requested quantities with the local coordinator.',source_ids=[],claim_ids=list(by_id)[:1],intent='check')]
     result.recommendations=list({(a.title,tuple(a.claim_ids)):a for a in actions}.values())
