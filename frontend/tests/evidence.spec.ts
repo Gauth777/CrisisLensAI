@@ -1,0 +1,23 @@
+import {test,expect} from '@playwright/test';
+test('claim passages precede action brief and historical comparisons stay separate',async({page},info)=>{
+ test.setTimeout(60000);
+ await page.route('https://tile.openstreetmap.org/**',r=>r.fulfill({contentType:'image/png',body:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64')}));
+ await page.goto('/');
+ const report=await (await page.request.post('/api/reports',{data:{location:'Velachery',landmark:'TEST evidence hall',observed_at:new Date().toISOString(),description:'TEST ONLY: site coordinator reports a drinking water request.',needs:'TEST evidence water request',resources:[{kind:'water',quantity:40}]}})).json();
+ await page.request.post(`/api/reports/${report.id}/review`,{headers:{'X-Review-Token':'browser-test-token'},data:{revision:0,status:'reviewed',reviewer:'Test reviewer',method:'phone',note:'TEST ONLY: checked request with the receiving contact.'}});
+ await page.reload();await page.locator('.request-card').filter({hasText:'TEST evidence water request'}).getByRole('button',{name:'Check evidence'}).click();
+ const panel=page.getByRole('dialog');await panel.getByRole('button',{name:'Prepare a plan'}).click();
+ await panel.getByLabel('Drinking water quantity').fill('50');
+ await panel.getByRole('button',{name:'Generate evidence-based steps'}).click();
+ await expect(panel.getByRole('heading',{name:'Know what each source supports.'})).toBeVisible();
+ await panel.getByText('Why this assessment?',{exact:true}).first().click();
+ await expect(panel.locator('blockquote').first()).toContainText('TEST ONLY: site coordinator reports');
+ await expect(panel).toContainText('Supports this detail');
+ await expect(panel).toContainText('Based on C1');
+ await panel.getByText(/Past incidents ·/).click();
+ await expect(panel).toContainText("Historical context, separate from today's conditions.");
+ await page.screenshot({path:info.outputPath('claim-evidence-desktop.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:info.outputPath('claim-evidence-mobile.png'),fullPage:true});
+});

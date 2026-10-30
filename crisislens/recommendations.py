@@ -17,6 +17,8 @@ class CitedItem(BaseModel):
     title: str
     explanation: str
     source_ids: list[str]
+    claim_ids: list[str] = Field(default_factory=list)
+    intent: Literal["check", "prepare", "respond"] = "check"
 
 
 class Claim(BaseModel):
@@ -54,7 +56,7 @@ class RecommendationQuestion(BaseModel):
 
 SYSTEM = """You are CrisisLens, an evidence-grounded recommendation assistant for NGO volunteers in Chennai.
 Write for busy nontechnical volunteers. Use brief, scannable actions, not essays.
-Headline: at most 10 words. Answer: at most 35 words, with the key uncertainty stated up front.
+Headline: at most 10 words. Answer: at most 35 words, with the key evidence and useful next step stated up front.
 Recommendation titles: start with a verb, at most 8 words; explanations: one sentence, at most 24 words,
 answering WHY that action matters. Group/supply titles: at most 6 words; explanations: at most 20 words.
 Claims: at most 18 words each; explanations: at most 24 words. Missing information: at most 5 short items,
@@ -87,8 +89,30 @@ If evidence_issues reports conflicts or hold_for_check, explicitly state the unc
 Use conditional wording when evidence is missing. Say what should be checked next rather than inventing facts.
 Return only JSON matching the provided schema, with concise answer and at most 4 claims, 3 recommendations,
 3 affected groups and 4 supply suggestions. Empty source_ids means no documentary support, not confirmation.
+When claim_assessment is present, use its checked claims as the basis for the action brief.
+Every recommendation must have claim_ids from that assessment and source_ids drawn from those claims.
+Use intent=check for obtaining missing facts, prepare for conditional readiness, respond for fulfilling a
+current reviewed need. Never describe response or allocation as a check to bypass missing evidence.
+Do not repeat generic uncertainty disclaimers. State the specific missing observation and useful next step.
+Historical comparisons explain past events only. They cannot justify a current dispatch or demand.
 Paraphrase publisher information; do not copy complete articles or lengthy passages.
 """
+
+
+def recommendation_schema():
+    # Strict structured-output providers require every object property in required,
+    # even where local validation keeps defaults for older saved briefings/tests.
+    schema = RecommendationOutput.model_json_schema()
+    def visit(node):
+        if isinstance(node, dict):
+            node.pop('default', None)
+            if node.get('type') == 'object' and 'properties' in node:
+                node['required'] = list(node['properties'])
+            for value in node.values(): visit(value)
+        elif isinstance(node, list):
+            for value in node: visit(value)
+    visit(schema)
+    return schema
 
 
 def recommend(provider: LLMProvider, question: RecommendationQuestion, context: dict) -> RecommendationOutput:
@@ -97,11 +121,12 @@ def recommend(provider: LLMProvider, question: RecommendationQuestion, context: 
     # summary and first expected rain window, not a duplicated time series.
     payload = {"question": question.model_dump(), "now": datetime.now(timezone.utc).isoformat(),
                "evidence_issues": context.get("evidence_issues", {}),
+               "claim_assessment": context.get("claim_assessment"),
                "sources": sources, "source_status": context["source_status"],
                "coverage_note": context["coverage_note"]}
     prompt = "Assess this request using only this bundle:\n" + json.dumps(payload, ensure_ascii=False)
     raw = provider.generate_json(system_prompt=SYSTEM, user_prompt=prompt,
-                                 output_schema=RecommendationOutput.model_json_schema())
+                                 output_schema=recommendation_schema())
     result = RecommendationOutput.model_validate(raw)
     if result.location != question.location:
         raise ValueError("Recommendation location mismatch")

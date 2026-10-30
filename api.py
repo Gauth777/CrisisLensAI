@@ -25,6 +25,7 @@ from crisislens.data.operations import operational_sources
 from crisislens.workflow import Workflow as Operations, ReportInput, UpdateReview, ReportUpdate, PlanInput, PlanChange, Resource
 from crisislens.recommendations import RecommendationQuestion, recommend
 from crisislens.reliability import resource_check
+from crisislens.evidence import evidence_brief, historical_sources, report_sources
 from crisislens.pipeline import CrisisLensPipeline
 from crisislens.simulation import router as simulation_router
 from crisislens.provider_failures import classify_provider_failure
@@ -247,7 +248,9 @@ def recommendations(request: RecommendationRequest):
     operational = operational_sources(snapshot)
     if request.report_id:
         operational = [s for s in operational if s["kind"] != "field_report" or s["id"] == "F" + request.report_id]
-    bundle["sources"].extend(operational)
+    bundle["sources"].extend(s for s in operational if s["kind"] != "field_report")
+    bundle["sources"].extend(report_sources(snapshot, request.report_id))
+    bundle["sources"].extend(historical_sources(request.location))
     selected = next((r for r in snapshot["reports"] if r["id"] == request.report_id), None)
     bundle["evidence_issues"] = resource_check(selected, [r.model_dump() for r in request.resources])
     bundle["source_status"].append({"name": "SACHET official alerts", "status": "stale_or_unavailable" if snapshot["feed"]["stale"] else "available"})
@@ -264,7 +267,7 @@ def recommendations(request: RecommendationRequest):
                   "sources": [bundle["sources"][-1]]}
     try:
         provider = build_provider(request.provider)
-        answer = recommend(provider, request, bundle)
+        answer, assessment = evidence_brief(provider, request, bundle)
     except (ValidationError, ValueError, TypeError) as exc:
         logger.warning("CrisisLens recommendation failure: provider=%s category=invalid_citations_or_output", request.provider)
         raise HTTPException(502, "The response failed structure or citation checks. No recommendation was accepted; try again.") from exc
@@ -278,6 +281,7 @@ def recommendations(request: RecommendationRequest):
                          "latency_ms": round((time.perf_counter() - started) * 1000, 2)}}
     selected = next((r for r in snapshot["reports"] if r["id"] == request.report_id), None)
     response["resource_check"] = resource_check(selected, [r.model_dump() for r in request.resources])
+    response["evidence_assessment"] = assessment
     response["validation"] = {"citation_ids_checked": True, "source_types_checked": True, "semantic_truth_verified": False, "claim_count": len(answer.claims), "uncertain_claims": sum(c.status == "insufficient_evidence" for c in answer.claims)}
     response["report_revision"] = next((r["revision"] for r in snapshot["reports"] if r["id"] == request.report_id), None)
     response["briefing_id"] = operations().save_briefing(response)

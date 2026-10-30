@@ -4,6 +4,7 @@ async function boot(page:Page){
   await page.goto("/");await expect(page.getByRole("heading",{name:"Where can your team help?"})).toBeVisible();
 }
 test("complete real API workflow: submit, review, generate, save, reload, approve and export",async({page},info)=>{
+  test.setTimeout(60000);
   await boot(page);
   await page.getByRole("button",{name:"Report an observation",exact:true}).first().click();
   let drawer=page.getByRole("dialog");

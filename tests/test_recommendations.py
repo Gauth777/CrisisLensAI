@@ -33,7 +33,13 @@ class Provider:
     def generate_json(self, **kwargs):
         assert "sources" in kwargs["user_prompt"]
         assert "claims" in kwargs["output_schema"]["properties"]
-        return deepcopy(self.result)
+        if 'headline' not in kwargs['output_schema']['properties']:
+            return {'claims':[{'id':'C1','statement':'Check the reported flooding','category':'incident','timeframe':'current','explanation':'The supplied records do not establish this detail.','next_check':'Ask the local coordinator for a dated observation.','evidence':[]}]}
+        result=deepcopy(self.result)
+        if '"claim_assessment": {' in kwargs['user_prompt']:
+            for item in result['recommendations']:
+                item.update(claim_ids=['C1'],source_ids=[],intent='check')
+        return result
 
 
 def test_weather_and_user_input_cannot_confirm_flooding():
