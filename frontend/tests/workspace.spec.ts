@@ -32,7 +32,7 @@ test("complete real API workflow: submit, review, generate, save, reload, approv
   await drawer.getByLabel("Available volunteers").fill("6");
   await drawer.getByRole("button",{name:"Generate evidence-based steps"}).click();
   await expect(drawer.getByRole("heading",{name:"Review the evidence and receiving arrangements"})).toBeVisible();
-  await drawer.getByText("Why? Check the evidence",{exact:true}).first().click();
+  await drawer.getByText("Why? Check the evidence",{exact:true}).click();
   await expect(drawer).toContainText("Coordinator-reviewed field report");
   await drawer.getByRole("button",{name:"Save draft plan"}).click();
   await expect(page.getByRole("heading",{name:"Response plans",exact:true})).toBeVisible();
@@ -43,11 +43,10 @@ test("complete real API workflow: submit, review, generate, save, reload, approv
   await drawer.getByLabel("Contact and demand checked").check();
   await drawer.getByLabel("Current access checked").check();
   await drawer.getByLabel("Receiving time agreed").check();
-  await drawer.getByRole("combobox",{name:"Action",exact:true}).selectOption("approve");
   await drawer.getByLabel("Coordinator token (approval / closure)").fill("browser-test-token");
   await drawer.getByLabel("Coordinator name or ID").fill("TEST coordinator");
   await drawer.getByLabel("Checks performed or reason for closure").fill("TEST ONLY: checked access, contact and receiving time.");
-  await drawer.getByRole("button",{name:"Save plan action"}).click();
+  await drawer.getByRole("button",{name:"Approve contribution",exact:true}).click();
   await expect(saved).toContainText("approved");
   await saved.click();
   const event=page.waitForEvent("download");await drawer.getByRole("button",{name:"Download briefing"}).click();

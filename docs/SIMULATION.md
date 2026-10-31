@@ -46,3 +46,9 @@ The browser remembers the session ID, but entry and refresh always open the scen
 ## Tests
 
 `python -m pytest -q` checks scenario progression, report/plan guards, reset, concurrent revision checks, session boundaries and live-data isolation. Browser tests in `frontend/tests/simulation.spec.ts` cover waterlogging, rain without demand, multi-area mobile use, persistence, approval, source changes, reset and labelled exports. The urgent standalone story also uses the same tested primary-report update sequence as the waterlogging story.
+
+### Contribution approval controls
+
+Open **Your contributions**, then **Review & approve contribution** on a saved draft. The confirmation is at the top of the panel: complete the three contact/access/receiving checks and select **Approve contribution**. Separate buttons save checks or close the contribution; approval is no longer hidden in an action dropdown. Missing checks and known request blockers are explained beside the button, and the server still validates approval against the current report.
+
+The request flow uses **We can help → Save contribution → Review & approve contribution**. A persistent demo banner identifies fictional records and no real commitment. Live contributions use the same explicit controls but still require the existing coordinator token; organization accounts, dispatch status and inventory reservations are separate work.
