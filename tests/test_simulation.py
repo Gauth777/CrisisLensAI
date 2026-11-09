@@ -28,8 +28,10 @@ def test_training_journey_uses_real_plan_guards_and_never_changes_live_data():
     with TestClient(api.app) as client:
         live_before = client.get("/api/plans").json()
         s = start(client)
-        assert s["reports"] == [] and s["simulation"]
+        assert len(s["reports"]) == 1 and s["simulation"]
+        opening_id = s["reports"][0]["id"]
         s = advance(client, s)
+        assert s["reports"][0]["id"] == opening_id
         s = draft(client, s, s["reports"][0])
         assert approve(client, s, s["plans"][0]).status_code == 409
         s = advance(client, s)
@@ -92,7 +94,7 @@ def test_reset_and_revision_guard_and_cross_session_isolation():
         assert client.post(f"/api/simulations/{other['id']}/plans", json={"location": "Tambaram", "report_id": report["id"], "resources": [], "volunteers": 3}).status_code == 404
         s = draft(client, s, report)
         s = advance(client, s, "reset")
-        assert s["stage"] == 0 and not s["reports"] and not s["plans"]
+        assert s["stage"] == 0 and len(s["reports"]) == 1 and s["reports"][0]["id"] != report["id"] and not s["plans"]
         assert client.get("/api/simulations/not-a-uuid").status_code == 422
 
 
@@ -106,3 +108,17 @@ def test_urgent_story_keeps_rescue_role_distinct_and_completes():
             s = advance(client, s)
         assert s["reports"][0]["status"] == "resolved"
         assert len(s["reports"][0]["updates"]) == 3
+
+
+def test_opening_dispatches_are_persisted_and_not_duplicated():
+    with TestClient(api.app) as client:
+        for scenario, count in {"waterlogging":1,"urgent":1,"multi":3,"conflict":2,"incomplete":1,"rain":1}.items():
+            session = start(client, scenario)
+            assert session["stage"] == 0 and len(session["reports"]) == count
+            ids = {r["id"] for r in session["reports"]}
+            assert all(r["observed_at"] and r["landmark"] for r in session["reports"])
+            if scenario in ("rain", "incomplete"):
+                assert not session["reports"][0]["resources"]
+            if scenario == "conflict":
+                assert all(r["conflicts"] for r in session["reports"])
+            assert {r["id"] for r in advance(client, session)["reports"]} == ids

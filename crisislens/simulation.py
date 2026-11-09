@@ -26,7 +26,7 @@ SCENARIOS.update({
     "conflict": {"id":"conflict", "title":"The stories don’t agree", "area":"Velachery", "eyebrow":"05 / RESOLVE DISAGREEMENT", "summary":"Two reports. One site. Different quantities and opposite access observations.", "lesson":"Hold recommendations until the conflicting records are reconciled.", "duration":"5 min", "level":"Conflicting reports", "rain":28},
     "incomplete": {"id":"incomplete", "title":"Help needed. How much?", "area":"Velachery", "eyebrow":"06 / KEEP THE UNKNOWN VISIBLE", "summary":"A water request is corroborated, but nobody has established the quantity.", "lesson":"Do not invent supply quantities when the request is incomplete.", "duration":"4 min", "level":"Incomplete information", "rain":18},
 })
-STAGES = ["Read the conditions", "A report arrives", "Check the evidence", "Access changes", "Recheck the plan", "Review the outcome"]
+STAGES = ["Opening dispatch", "Field check", "Check the evidence", "Access changes", "Recheck the plan", "Review the outcome"]
 STORIES = {
  "rain": [
   ("A forecast is a reason to check.", "4 mm is forecast over one hour in this fictional scenario. There is no reported assistance request.", "Read the weather context; keep resources available."),
@@ -38,7 +38,7 @@ STORIES = {
  ],
  "response": [
   ("Start with what is known.", "The fictional forecast indicates sustained rain. Street conditions and assistance needs are still unknown.", "Choose your resources. Do not infer a need from the rainfall."),
-  ("People report a specific need.", "Training field reports have arrived. They are unreviewed and cannot yet support an approved response.", "Open a request to inspect people, quantities and uncertainties."),
+  ("The coordinator opens the field check.", "The intake report is on file. The coordinator must confirm the site, need and receiving arrangement before a contribution can be approved.", "Open a request to inspect people, quantities and uncertainties."),
   ("A check makes the request usable.", "A scripted coordinator call corroborates the reported needs at the named training sites. This is simulated evidence, not a real call.", "Check the evidence, save a draft and practise coordinator approval."),
   ("Your old plan needs a fresh look.", "A new field update reports changed access at the primary site. It is pending review; existing plans are flagged for rechecking.", "Inspect the update. Approval of an old draft is now blocked."),
   ("Needs change as help arrives.", "A scripted check accepts an alternative receiving point and partial supply fulfilment at the primary site. Remaining quantities are updated.", "Compare the remaining need and create a fresh draft."),
@@ -49,6 +49,17 @@ PROFILES = {
  "Velachery": {"landmark": "SIMULATION · Lakeside community point", "description": "SIMULATION: waterlogging has interrupted access to a community point. Residents sheltering there request drinking water.", "needs": "Drinking water for the community point", "resources": [{"kind": "water", "quantity": 120}], "groups": ["Residents sheltering at the training community point"], "specialist": False},
  "Tambaram": {"landmark": "SIMULATION · South neighbourhood point", "description": "SIMULATION: a volunteer reports residents unable to leave flooded homes, including older residents. Trained rescue assistance is requested; supply volunteers must not enter floodwater.", "needs": "Trained rescue coordination and food at a receiving point", "resources": [{"kind": "food", "quantity": 40}], "groups": ["Residents reportedly unable to leave homes", "Older residents mentioned in the report"], "specialist": True},
  "Chromepet": {"landmark": "SIMULATION · Community support point", "description": "SIMULATION: a staffed support point requests sealed medical supply kits. No injuries or diagnosis are established by this request.", "needs": "Sealed medical supply kits for the staffed support point", "resources": [{"kind": "medical", "quantity": 10}], "groups": ["People using the training support point"], "specialist": False},
+}
+
+# Opening dispatches are fictional composites; the CFM archive supplies geographic
+# context only. Quantities here match the actual isolated workflow records.
+OPENINGS = {
+    "waterlogging": ("The Velachery shelter asks for 120 litres.", "Water across the approach has cut off the usual refill. The shelter volunteer has called in a drinking-water request. Your team has supplies; the receiving arrangement still needs checking.", "Open the shelter report and compare the request with what your team can bring."),
+    "urgent": ("A rescue call comes in from Tambaram.", "A volunteer reports older residents unable to leave flooded homes. The receiving point also asks for 40 food kits. Rescue and supply support are separate jobs.", "Read the field report before offering supplies to the receiving point."),
+    "multi": ("Three receiving points call the same team.", "Velachery asks for 120 litres of water, Tambaram for 40 food kits, and Chromepet for 10 sealed medical kits. The reports have arrived; the coordinator has yet to check them.", "Compare the three requests against your inventory and choose one to inspect."),
+    "conflict": ("One shelter. Two different water requests.", "The first caller requests 120 litres and describes a passable approach. A second observer asks for 200 litres and says access is blocked.", "Compare the two accounts before offering a quantity."),
+    "incomplete": ("The shelter needs water. How much is missing?", "Residents have gathered at the Velachery receiving point. A volunteer asks for drinking water but cannot yet give a quantity.", "Open the report and identify the question the receiving contact needs to answer."),
+    "rain": ("A message from Chromepet needs checking.", "A forwarded message says homes are affected. It gives no address or supply request. The 4 mm forecast cannot settle what happened on that street.", "Inspect the message and follow the local check before committing resources."),
 }
 
 class Start(BaseModel):
@@ -104,7 +115,7 @@ def review(work, report, status="reviewed", update_id=None, note=None):
 
 def apply_stage(work, meta):
     stage, rain = meta["stage"], meta["scenario"] == "rain"
-    if stage == 1:
+    if stage in (0, 1) and not meta["report_ids"]:
         locations = AREAS if meta["scenario"] == "multi" else [primary(meta)]
         for area in locations:
             p = PROFILES[area]
@@ -149,6 +160,8 @@ def apply_stage(work, meta):
 def state(work, meta):
     scenario = SCENARIOS[meta["scenario"]]
     story = STORIES["rain" if meta["scenario"] == "rain" else "response"][meta["stage"]]
+    if meta["stage"] == 0:
+        story = OPENINGS[meta["scenario"]]
     if meta["scenario"] == "conflict" and meta["stage"] in (1, 2, 3):
         story = ("These reports disagree.", "Two training records describe the same site with different quantities and opposite access observations. Neither should silently override the other.", "Compare both records. Quantity proposals and approval are held until reconciliation.")
     if meta["scenario"] == "incomplete" and meta["stage"] in (1, 2, 3, 4):
@@ -190,6 +203,7 @@ def start(payload: Start):
         identifier = uuid.uuid4()
         work = Workflow(directory() / (str(identifier) + ".sqlite3"))
         meta = initial(payload.scenario, identifier)
+        apply_stage(work, meta)
         write_meta(work, meta)
         return state(work, meta)
 
@@ -211,6 +225,7 @@ def advance(identifier: uuid.UUID, event: Event):
                 for table in ("reports", "reviews", "report_updates", "plans", "briefings"):
                     db.execute(f"DELETE FROM {table}")
             meta = initial(meta["scenario"], identifier, meta["revision"] + 1)
+            apply_stage(work, meta)
         else:
             if meta["stage"] == 5:
                 raise HTTPException(409, "This scenario is complete. Reset it to start again.")

@@ -19,10 +19,10 @@ Two additional exercises are **The stories don’t agree** (conflicting access a
 
 ## Five-minute demonstration
 
-1. Choose **From report to response**. Explain the purpose and simulation banner. The initial forecast does not create a local request.
+1. Select **Open the Velachery dispatch**. The opening field report asks for 120 litres; the team starts with 80. Click **Read the field report** to show the site, report time and quantity comparison. Both the call and the inventory are fictional.
 2. Select **Next event**. Open **Why? Check the evidence** on the unreviewed report. You can save a draft, but approval is blocked.
 3. Select **Next event** again. A scripted coordinator check now corroborates the training request. Compare 120 litres requested with the editable starting inventory of 80 litres. The difference is not a delivery or allocation.
-4. Open the evidence panel and save a fresh practice draft. Under **Your practice plans**, open it, tick the three training checks and choose **Approve practice response**. Record the practice decision. The same server-side plan rules used in live mode apply, but no live coordinator token is required in this isolated training workspace.
+4. Open the evidence panel and save a fresh practice draft. Under **Your contributions**, choose **Review & approve contribution**, tick the three checks, then select **Approve contribution**. The same server-side plan rules used in live mode apply, but no live coordinator token is required in this isolated training workspace.
 5. Select **Next event**. An access update is pending review. The existing plan is flagged as changed; an old draft cannot be approved. Open the report to show the update trail.
 6. Advance to **Recheck**. Scripted checks accept changed access and partial fulfilment. The remaining water request becomes 80 litres. Create a fresh draft from the updated request if desired.
 7. Advance to **Outcome**. Show the recorded plans and remaining requests. The scripted resolution is not attributed to the user's practice plan. Export a briefing with an explicit SIMULATION label.
