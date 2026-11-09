@@ -33,14 +33,14 @@ STORIES = {
   ("A message is not yet evidence.", "An unverified message claims homes are affected. No location-specific corroboration or supply request is attached.", "Open the report and check what is missing."),
   ("The claim was not corroborated.", "A scripted on-site check rejects the message: the observer found a passable street and no assistance request at the training site.", "Do not generalise this one check to all of Chromepet."),
   ("The forecast eases.", "The training forecast falls to 1 mm over one hour. The earlier rejection stands independently of the weather.", "Keep monitoring; lower rainfall is not proof of universal safety."),
-  ("Preparedness is enough here.", "No corroborated demand has entered this scenario. A preparedness draft remains useful; response approval remains blocked.", "Save a preparedness note if helpful. Do not invent a delivery."),
+  ("Preparedness is enough here.", "No corroborated demand has entered this scenario. A preparedness draft remains useful; no live response is warranted.", "Save a preparedness note if helpful. Do not invent a delivery."),
   ("You avoided an unsupported response.", "This fictional exercise ends with no corroborated assistance request at the checked site.", "Explain which evidence was missing and why rain alone was insufficient."),
  ],
  "response": [
   ("Start with what is known.", "The fictional forecast indicates sustained rain. Street conditions and assistance needs are still unknown.", "Choose your resources. Do not infer a need from the rainfall."),
   ("The coordinator opens the field check.", "The intake report is on file. The coordinator must confirm the site, need and receiving arrangement before a contribution can be approved.", "Open a request to inspect people, quantities and uncertainties."),
   ("A check makes the request usable.", "A scripted coordinator call corroborates the reported needs at the named training sites. This is simulated evidence, not a real call.", "Check the evidence, save a draft and practise coordinator approval."),
-  ("Your old plan needs a fresh look.", "A new field update reports changed access at the primary site. It is pending review; existing plans are flagged for rechecking.", "Inspect the update. Approval of an old draft is now blocked."),
+  ("Your old plan needs a fresh look.", "A new field update reports changed access at the primary site. It is pending review; existing plans are flagged for rechecking.", "Inspect the update. The demo contribution can still be approved; a live response would require a fresh check."),
   ("Needs change as help arrives.", "A scripted check accepts an alternative receiving point and partial supply fulfilment at the primary site. Remaining quantities are updated.", "Compare the remaining need and create a fresh draft."),
   ("Close the loop, honestly.", "The primary request is resolved by a scripted field update. In the three-area exercise, other requests remain open.", "Review what your team planned and what the scenario actually reports."),
  ],
@@ -163,7 +163,7 @@ def state(work, meta):
     if meta["stage"] == 0:
         story = OPENINGS[meta["scenario"]]
     if meta["scenario"] == "conflict" and meta["stage"] in (1, 2, 3):
-        story = ("These reports disagree.", "Two training records describe the same site with different quantities and opposite access observations. Neither should silently override the other.", "Compare both records. Quantity proposals and approval are held until reconciliation.")
+        story = ("These reports disagree.", "Two training records describe the same site with different quantities and opposite access observations. Neither should silently override the other.", "Compare both records. Quantity proposals are withheld until reconciliation. Demo approval does not resolve the disagreement.")
     if meta["scenario"] == "incomplete" and meta["stage"] in (1, 2, 3, 4):
         story = ("The need is reported. The quantity is unknown.", "The fictional site requests water but no reliable quantity is recorded. A reviewed report can still be incomplete.", "Check the missing information. Do not invent litres or people counts.")
     reports = []
@@ -256,7 +256,24 @@ def change_plan(identifier: uuid.UUID, plan_id: uuid.UUID, payload: PlanChange):
     with lock:
         work, meta = get_session(identifier)
         try:
-            work.change_plan(plan_id.hex, payload)
+            if payload.action == "approve":
+                # Only this session's fictional database is reachable here.
+                with work.connect() as db:
+                    db.execute("BEGIN IMMEDIATE")
+                    row = db.execute("SELECT data, revision FROM plans WHERE id=?", (plan_id.hex,)).fetchone()
+                    if not row:
+                        raise KeyError(plan_id.hex)
+                    record = json.loads(row[0])
+                    if row[1] != payload.revision or record["status"] != "draft":
+                        raise ValueError("This contribution changed. Reopen it to see its current status.")
+                    now = utcnow().isoformat()
+                    record.update(status="approved", revision=row[1]+1, updated_at=now)
+                    record["history"].append({"at":now, "action":"approve", "actor":"Demo participant",
+                        "note":"Simulation approval only. No field checks, dispatch or delivery recorded."})
+                    db.execute("UPDATE plans SET data=?, revision=? WHERE id=?",
+                               (json.dumps(record), record["revision"], plan_id.hex))
+            else:
+                work.change_plan(plan_id.hex, payload)
         except KeyError as exc:
             raise HTTPException(404, "Plan not found in this simulation.") from exc
         except ValueError as exc:

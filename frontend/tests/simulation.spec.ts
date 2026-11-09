@@ -3,7 +3,7 @@ async function open(page:Page){await page.goto("/#simulation");await expect(page
 async function next(page:Page){await page.getByRole("button",{name:"Next event",exact:true}).click();}
 async function evidence(page:Page){await page.getByRole("button",{name:"Why? Check the evidence"}).first().click();}
 async function savePlan(page:Page){const drawer=page.getByRole("dialog");await drawer.getByRole("button",{name:"We can help"}).click();await drawer.getByRole("button",{name:"Save contribution"}).click();await expect(page.locator(".sim-plan-card").first()).toBeVisible();}
-async function checks(page:Page){const d=page.getByRole("dialog");await d.getByLabel("Training contact and demand checked").check();await d.getByLabel("Training access checked").check();await d.getByLabel("Training receiving time agreed").check();const approve=d.getByRole("button",{name:"Approve contribution",exact:true});if(await approve.isEnabled())await approve.click();}
+async function checks(page:Page){const button=page.getByRole("dialog").getByRole("button",{name:"Approve contribution",exact:true});await expect(button).toBeEnabled();await button.click();await expect(page.locator(".sim-plan-card").first()).toContainText("Practice approved");}
 
 test("waterlogging walkthrough approves, detects source changes, resumes and resets without live records",async({page},info)=>{
  test.setTimeout(90000);
@@ -13,7 +13,7 @@ test("waterlogging walkthrough approves, detects source changes, resumes and res
  await page.getByRole("button",{name:"Read the field report"}).click();await expect(page.getByRole("dialog")).toContainText("120 litres requested · 80 available");await page.getByRole("button",{name:"Close drawer"}).click();
  await next(page);await expect(page.locator(".sim-request")).toContainText("Unreviewed");
  await evidence(page);await expect(page.getByRole("dialog")).toContainText("No coordinator check");await savePlan(page);
- await page.locator(".sim-plan-card").first().click();await checks(page);await expect(page.getByRole("dialog")).toContainText("awaiting review");await expect(page.getByRole("button",{name:"Approve contribution",exact:true})).toBeDisabled();await page.getByRole("button",{name:"Close drawer"}).click();
+ await page.locator(".sim-plan-card").first().click();await checks(page);
  await next(page);await page.getByRole("button",{name:/Local requests/}).click();await expect(page.locator(".sim-request")).toContainText("Coordinator-reviewed");
  await page.getByRole("button",{name:/The rainfall number alone/}).click();await expect(page.locator(".sim-decision-feedback")).toContainText("Reconsider");await page.getByRole("button",{name:/A current reviewed need/}).click();await expect(page.locator(".sim-decision-feedback")).toContainText("Exactly");
  await page.screenshot({path:info.outputPath("simulation-reviewed-desktop.png"),fullPage:true,animations:"disabled"});
@@ -27,9 +27,9 @@ test("waterlogging walkthrough approves, detects source changes, resumes and res
  await page.getByRole("button",{name:"Return to live",exact:true}).click();await expect(page.getByRole("heading",{name:"Where can your team help?"})).toBeVisible();await expect(page.locator(".request-card").filter({hasText:"SIMULATION"})).toHaveCount(0);
 });
 
-test("rain scenario cannot approve preparedness and ends with rejected claim",async({page})=>{
+test("rain scenario permits demo approval and ends with rejected claim",async({page})=>{
  await open(page);await page.getByRole("button",{name:/Rain is not a rescue call/}).click();
- await page.getByRole("button",{name:"Save a preparedness draft"}).click();await page.getByRole("button",{name:"Save contribution"}).click();await page.locator(".sim-plan-card").click();await checks(page);await expect(page.getByRole("dialog")).toContainText("cannot be approved");await expect(page.getByRole("button",{name:"Approve contribution",exact:true})).toBeDisabled();await page.getByRole("button",{name:"Close drawer"}).click();
+ await page.getByRole("button",{name:"Save a preparedness draft"}).click();await page.getByRole("button",{name:"Save contribution"}).click();await page.locator(".sim-plan-card").click();await checks(page);
  for(let i=0;i<5;i++){await next(page);await expect(page.locator(".sim-timeline li").nth(i+1)).toHaveAttribute("aria-current","step");}
  await page.getByRole("button",{name:/Local requests/}).click();await expect(page.locator(".sim-request")).toContainText("Rejected");await expect(page.locator(".sim-request")).toContainText("No outstanding quantity established");
 });

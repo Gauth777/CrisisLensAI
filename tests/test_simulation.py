@@ -33,12 +33,11 @@ def test_training_journey_uses_real_plan_guards_and_never_changes_live_data():
         s = advance(client, s)
         assert s["reports"][0]["id"] == opening_id
         s = draft(client, s, s["reports"][0])
-        assert approve(client, s, s["plans"][0]).status_code == 409
+        assert approve(client, s, s["plans"][0]).status_code == 200
         s = advance(client, s)
         s = draft(client, s, s["reports"][0])
         plan = s["plans"][0]
-        assert approve(client, s, plan, access_checked=False).status_code == 409
-        response = approve(client, s, plan)
+        response = approve(client, s, plan, access_checked=False)
         assert response.status_code == 200
         assert response.json()["plans"][0]["status"] == "approved"
         s = advance(client, response.json())
@@ -60,7 +59,7 @@ def test_rain_scenario_never_manufactures_demand_or_permits_response_approval():
     with TestClient(api.app) as client:
         s = start(client, "rain")
         s = draft(client, s)
-        assert approve(client, s, s["plans"][0]).status_code == 409
+        assert approve(client, s, s["plans"][0]).status_code == 200
         for _ in range(5):
             s = advance(client, s)
         assert s["weather"]["rain_mm"] == 1
@@ -122,3 +121,18 @@ def test_opening_dispatches_are_persisted_and_not_duplicated():
             if scenario == "conflict":
                 assert all(r["conflicts"] for r in session["reports"])
             assert {r["id"] for r in advance(client, session)["reports"]} == ids
+
+
+def test_demo_approval_at_every_stage_without_field_checks():
+    with TestClient(api.app) as client:
+        s = start(client, "conflict")
+        for stage in range(6):
+            s = draft(client, s, s["reports"][0])
+            p = s["plans"][0]
+            result = approve(client, s, p, contact_checked=False, access_checked=False, receiving_time_checked=False)
+            assert result.status_code == 200, result.text
+            saved = next(x for x in result.json()["plans"] if x["id"] == p["id"])
+            assert saved["status"] == "approved" and not saved["contact_checked"]
+            assert approve(client, s, p).status_code == 409
+            if stage < 5:
+                s = advance(client, result.json())

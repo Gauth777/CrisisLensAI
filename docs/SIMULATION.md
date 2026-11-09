@@ -20,15 +20,15 @@ Two additional exercises are **The stories don’t agree** (conflicting access a
 ## Five-minute demonstration
 
 1. Select **Open the Velachery dispatch**. The opening field report asks for 120 litres; the team starts with 80. Click **Read the field report** to show the site, report time and quantity comparison. Both the call and the inventory are fictional.
-2. Select **Next event**. Open **Why? Check the evidence** on the unreviewed report. You can save a draft, but approval is blocked.
+2. Select **Next event**. Open **Why? Check the evidence** on the unreviewed report. Save and approve the fictional contribution immediately if desired.
 3. Select **Next event** again. A scripted coordinator check now corroborates the training request. Compare 120 litres requested with the editable starting inventory of 80 litres. The difference is not a delivery or allocation.
-4. Open the evidence panel and save a fresh practice draft. Under **Your contributions**, choose **Review & approve contribution**, tick the three checks, then select **Approve contribution**. The same server-side plan rules used in live mode apply, but no live coordinator token is required in this isolated training workspace.
-5. Select **Next event**. An access update is pending review. The existing plan is flagged as changed; an old draft cannot be approved. Open the report to show the update trail.
+4. Open the evidence panel and save a fresh practice draft. Under **Your contributions**, choose **Review & approve contribution**, select **Approve contribution**. Demo approval requires no coordinator credentials or checkboxes.
+5. Select **Next event**. An access update is pending review. The existing plan is flagged as changed; demo approval remains available. Open the report to show the update trail.
 6. Advance to **Recheck**. Scripted checks accept changed access and partial fulfilment. The remaining water request becomes 80 litres. Create a fresh draft from the updated request if desired.
 7. Advance to **Outcome**. Show the recorded plans and remaining requests. The scripted resolution is not attributed to the user's practice plan. Export a briefing with an explicit SIMULATION label.
 8. Reset to repeat or return to the live workspace. Live requests and plans remain unchanged.
 
-The three-area story leaves Tambaram and Chromepet open at the end. The low-rain story rejects the unsupported message; preparedness drafts remain ineligible for incident-response approval.
+The three-area story leaves Tambaram and Chromepet open at the end. The low-rain story rejects the unsupported message; demo preparedness approval never creates a real assistance request.
 
 ## What is real, what is scripted
 
@@ -49,6 +49,6 @@ The browser remembers the session ID, but entry and refresh always open the scen
 
 ### Contribution approval controls
 
-Open **Your contributions**, then **Review & approve contribution** on a saved draft. The confirmation is at the top of the panel: complete the three contact/access/receiving checks and select **Approve contribution**. Separate buttons save checks or close the contribution; approval is no longer hidden in an action dropdown. Missing checks and known request blockers are explained beside the button, and the server still validates approval against the current report.
+Open **Your contributions → Review & approve contribution → Approve contribution** at any stage. Approval records only a demo decision. Evidence warnings remain visible; live approval rules are unchanged.
 
 The request flow uses **We can help → Save contribution → Review & approve contribution**. A persistent demo banner identifies fictional records and no real commitment. Live contributions use the same explicit controls but still require the existing coordinator token; organization accounts, dispatch status and inventory reservations are separate work.
